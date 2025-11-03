@@ -1,0 +1,1 @@
+{% extends 'layout.html' %}{% block content %}<main class='container'><h2>Voting Summary</h2><div class='grid'>{% for c in cottages %}<div class='card'><h3>{{ c['name'] }}</h3><div class='center'><div style='font-size:28px'>{{ c['votes'] }}</div></div></div>{% endfor %}</div></main>{% endblock %}

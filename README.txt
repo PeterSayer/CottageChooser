@@ -1,0 +1,1 @@
+See README in prototype. Run with python app.py after installing Flask.
