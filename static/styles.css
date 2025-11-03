@@ -1,1 +1,37 @@
-body{font-family:Arial,sans-serif}
+/* Rustic cozy mockup style */
+body {
+  background-color: #f9f5f0;
+  font-family: 'Poppins', sans-serif;
+  color: #3b2f2f;
+}
+
+header, footer {
+  background-color: #d5c2a1;
+  color: #3b2f2f;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.card {
+  background-color: #fff8f2;
+  border: 1px solid #e0cdb8;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+button, .btn {
+  background-color: #7a5c3e;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover, .btn:hover {
+  background-color: #5b422d;
+}

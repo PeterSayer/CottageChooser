@@ -1,1 +1,23 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title or 'CottageChooser' }}</title><link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"></head><body><div class='container'>{% with messages = get_flashed_messages() %}{% if messages %}<div class='card'>{% for m in messages %}<div class='small'>{{ m }}</div>{% endfor %}</div>{% endif %}{% endwith %}{% block content %}{% endblock %}<div class='footer'>Prototype</div></div><script>async function vote(id,btn){btn.disabled=true;const res=await fetch('/vote/'+id,{method:'POST'});if(res.ok)btn.innerText='Voted';else{btn.innerText='Error'}};</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title if title else "CottageChooser" }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="p-4 text-center font-semibold text-lg shadow-md">
+    🏡 CottageChooser
+  </header>
+  
+  <main class="flex-grow container mx-auto p-4">
+    {% block content %}{% endblock %}
+  </main>
+  
+  <footer class="p-4 text-center text-sm mt-8">
+    © 2025 CottageChooser Group
+  </footer>
+</body>
+</html>
