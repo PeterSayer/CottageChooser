@@ -42,8 +42,11 @@ def join():
         session['group_code'] = code or 'default'
         session['user_name'] = name
         flash('Joined group as ' + name)
-        return redirect(url_for('index'))
-    return render_template('login.html')
+        return redirect(url_for('cottages'))  # Go to main page after login
+    
+    # Show the join/login screen template
+    return render_template('join.html')
+
 
 @app.route('/logout')
 def logout():
