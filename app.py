@@ -43,7 +43,7 @@ def join():
         session['user_name'] = name
         flash('Joined group as ' + name)
         return redirect(url_for('index'))
-    return render_template('login.html')
+    return render_template('index.html')
 
 @app.route('/logout')
 def logout():
@@ -52,11 +52,8 @@ def logout():
 
 @app.route('/')
 def index():
-    db = get_db()
-    cur = db.execute("SELECT name, votes FROM cottages ORDER BY votes DESC LIMIT 3")
-    top = cur.fetchall()
-    members = 10
-    return render_template('index.html', top=top, members=members)
+    return redirect(url_for('join'))
+
 
 @app.route('/cottages')
 def cottages():
@@ -107,13 +104,26 @@ def add_cottage():
 def vote(cottage_id):
     db = get_db()
     voted = session.get('voted', [])
+
     if cottage_id in voted:
-        return jsonify({'status':'already voted'}), 400
+        # Fetch current votes so UI can still display correct number
+        row = db.execute("SELECT votes FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+        return jsonify({'status': 'already voted', 'votes': row['votes']}), 400
+
+    # Perform update
     db.execute("UPDATE cottages SET votes = votes + 1 WHERE id = ?", (cottage_id,))
     db.commit()
+
+    # Fetch new vote count
+    row = db.execute("SELECT votes FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    new_count = row['votes']
+
+    # Track in session
     voted.append(cottage_id)
     session['voted'] = voted
-    return jsonify({'status':'ok'})
+
+    return jsonify({'status': 'ok', 'vote': new_count})
+
 
 @app.route('/results')
 def results():

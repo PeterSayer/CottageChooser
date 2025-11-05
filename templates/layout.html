@@ -10,9 +10,13 @@
 <body class="min-h-screen flex flex-col">
   <header class="p-4 text-center font-semibold text-lg shadow-md">
     🏡 CottageChooser  <a href="https://cottagechooser.onrender.com/" class="text-blue-600 hover:underline">Home</a>
+    <a href="https://cottagechooser.onrender.com/results" class="text-blue-600 hover:underline">Vote Summary</a>
+    {% if session.get('user_name') %} | Logged in as  
   {{session['user_name']}}
+    {% else %}
+    | <a href="{{ url_for('join') }}" class="text-blue-600 hover:underline">Join Voting Group</a>
+    {% endif %}
   </header>
-  
   <main class="flex-grow container mx-auto p-4">
     {% block content %}{% endblock %}
   </main>
@@ -20,5 +24,35 @@
   <footer class="p-4 text-center text-sm mt-8">
     © 2025 CottageChooser Group
   </footer>
+<script>
+async function vote(cottage_id, btn) {
+    try {
+        let response = await fetch("/vote/" + cottage_id, { method: "POST" });
+        let data = await response.json();   // expect {"votes": new_count}
+
+        if (response.ok) {
+            // Find and update the vote count span for this cottage
+           const countSpan = document.querySelector('.vote-count[data-id="' + cottage_id + '"]');
+if (countSpan && data.votes !== undefined) {
+    countSpan.textContent = data.votes;
+    countSpan.nextSibling.textContent = data.votes === 1 ? " vote" : " votes";
+}
+
+            if (countSpan) countSpan.textContent = data.votes;
+
+            // Change button state
+            btn.innerText = "Voted!";
+            btn.disabled = true;
+        } else {
+            alert("Vote failed.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error sending vote.");
+    }
+}
+</script>
+
+
 </body>
 </html>

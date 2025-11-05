@@ -1,1 +1,7 @@
-{% extends 'layout.html' %}{% block content %}<main class='container'><h2>Cottages</h2><div class='grid'>{% for c in cottages %}<div class='card'><img src='{{ c["image"] or url_for("static",filename="placeholder.jpg") }}'><h3>{{ c['name'] }}</h3><div class='meta'><div class='small'>{{ c['location'] }}</div><div class='pill'>{{ c['price'] }}</div></div><p class='small'>{{ c['beds'] }} beds • {{ 'Dog friendly' if c['dogs_allowed'] else 'No dogs' }}</p><div class='actions'><a class='btn' href='{{ url_for('cottage_detail', cottage_id=c["id"]) }}'>Details</a>  <button class='btn'  onclick='vote({{c["id"]}}, this)'>Vote</button></div></div>{% endfor %}</div></main>{% endblock %}
+{% extends 'layout.html' %}{% block content %}<main class='container'><h2>Cottages</h2><div class='grid'>{% for c in cottages %}<div class='card'><img src="{{ c['image'] or url_for('static', filename='placeholder.jpg') }}" width="200" height="100" style="object-fit: cover;"><h3>{{ c['name'] }}</h3><div class='meta'><div class='small'>{{ c['location'] }}</div><div class='pill'>{{ c['price'] }}</div></div><p class='small'>{{ c['beds'] }} beds • {{ 'Dog friendly' if c['dogs_allowed'] else 'No dogs' }}</p><div class='actions'>
+  <span class="vote-count" data-id="{{ c['id'] }}">{{ c['votes'] }}</span>
+  {{ 'vote' if c['votes'] == 1 else 'votes' }}
+  <a class='btn' href='{{ url_for('cottage_detail', cottage_id=c["id"]) }}'>Details</a>
+  <button class='btn' onclick='vote({{ c["id"] }}, this)'>Vote</button>
+</div>
+{% endfor %}</div></main>{% endblock %}
