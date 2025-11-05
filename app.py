@@ -32,6 +32,7 @@ def init_db():
 @app.route('/init')
 def init():
     init_db()
+    session.clear()
     return "Database initialized. Go to /"
 
 @app.route('/join', methods=['GET','POST'])

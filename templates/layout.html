@@ -44,7 +44,7 @@ if (countSpan && data.votes !== undefined) {
             btn.innerText = "Voted!";
             btn.disabled = true;
         } else {
-            alert("Vote failed.");
+            alert("Have you voted already? - Vote failed.");
         }
     } catch (e) {
         console.error(e);
