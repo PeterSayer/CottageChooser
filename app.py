@@ -43,7 +43,7 @@ def join():
         session['user_name'] = name
         flash('Joined group as ' + name)
         return redirect(url_for('index'))
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
