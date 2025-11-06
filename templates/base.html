@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cottage Voting App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow mb-6">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex justify-between items-center h-16">
+        <a href="{{ url_for('cottages') }}" class="text-xl font-bold text-blue-600 hover:text-blue-800">Cottages</a>
+        <div class="hidden md:flex items-center space-x-4">
+          <a href="{{ url_for('add_cottage') }}" class="text-gray-700 hover:text-gray-900">Add Cottage</a>
+          <a href="{{ url_for('results') }}" class="text-gray-700 hover:text-gray-900">Results</a>
+          {% if session.get('user_name') %}
+            <span class="text-gray-700 mr-2">Hi, {{ session.get('user_name') }}</span>
+            <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Logout</a>
+          {% else %}
+            <a href="{{ url_for('join') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Login</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+ <!-- Flash Messages -->
+<div class="max-w-6xl mx-auto px-4">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div id="flash-container" class="mb-4 space-y-2">
+        {% for msg in messages %}
+          <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Auto-refresh after 2 seconds -->
+      <script>
+        setTimeout(function() {
+          // Reload the page to show updated data
+          window.location.reload();
+        }, 2000); // 2000 milliseconds = 2 seconds
+      </script>
+    {% endif %}
+  {% endwith %}
+</div>
+  <!-- Page Content -->
+  <div class="flex-grow">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white shadow mt-6">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-center text-gray-500">
+      &copy; {{ now().year }} Cottage Voting App
+    </div>
+  </footer>
+
+</body>
+</html>

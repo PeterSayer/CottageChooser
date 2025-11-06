@@ -1,1 +1,23 @@
-{% extends 'layout.html' %}{% block content %}<main class='container'><div class='card'><h2>Suggest a cottage</h2><form method='post'><div class='form-row'><input name='name' required placeholder='Cottage name'></div><div class='form-row'><input name='location' required placeholder='Location'></div><div class='form-row'><input name='price' placeholder='Price'><input name='beds' placeholder='Beds'><select name='dogs'><option value='yes'>Dog friendly</option><option value='no'>No dogs</option></select></div><div class='form-row'><input name='image' placeholder='Image URL'></div><div class='form-row'><textarea name='description' placeholder='Description'></textarea></div><div class='form-row' style='justify-content:flex-end'><button class='btn' type='submit'>Add suggestion</button></div></form></div></main>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<main class="flex items-center justify-center flex-grow p-6">
+  <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-6 text-center">Add a Cottage</h1>
+
+    <form action="{{ url_for('add_cottage') }}" method="POST" class="space-y-4">
+      <input type="text" name="name" placeholder="Cottage Name" class="w-full border rounded p-2" required>
+      <input type="text" name="location" placeholder="Location" class="w-full border rounded p-2" required>
+      <input type="number" name="price" placeholder="Price per night (£)" class="w-full border rounded p-2" required>
+      <input type="number" name="beds" placeholder="Number of beds" class="w-full border rounded p-2" min="1" required>
+      <select name="dogs" class="w-full border rounded p-2">
+        <option value="no">Dogs not allowed</option>
+        <option value="yes">Dogs allowed</option>
+      </select>
+      <input type="text" name="image" placeholder="Image URL" class="w-full border rounded p-2">
+      <textarea name="description" placeholder="Description" class="w-full border rounded p-2"></textarea>
+
+      <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Cottage</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

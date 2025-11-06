@@ -1,32 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Join Group</title>
-  <link rel="stylesheet" href="/static/css/tailwind.css" />
-</head>
-<body class="min-h-screen bg-green-50 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
-    <h1 class="text-2xl font-semibold text-center text-green-800 mb-6">
-      Join Your Cottage Group
-    </h1>
-    <form method="post" class="space-y-4">
+{% extends "base.html" %}
+{% block content %}
+<main class="flex items-center justify-center flex-grow p-6">
+  <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-6 text-center">Join the voting for the holiday cottage 2026</h1>
+
+    <form action="{{ url_for('join') }}" method="POST" class="space-y-4">
       <div>
-        <label class="block text-sm text-gray-700">Group Code</label>
-        <input type="text" name="code" placeholder="e.g. summer-trip" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-green-600 focus:border-green-600" />
+        <label for="name" class="block font-semibold mb-1">Your Name</label>
+        <input type="text" name="name" id="name" placeholder="Enter your name" 
+               class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
       </div>
-    </br>
+
       <div>
-        <label class="block text-sm text-gray-700">Your Name</label>
-        <input type="text" name="name" placeholder="e.g. Sarah" class="mt-1 w-full rounded-lg border-gray-300 focus:ring-green-600 focus:border-green-600" />
+        <label for="code" class="block font-semibold mb-1">Group Code</label>
+        <input type="text" name="code" id="code" placeholder="Enter group code" 
+               class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
       </div>
-    </br>
-      <button type="submit" class="w-full py-3 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg transition">
+
+      <button type="submit" 
+              class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold">
         Join
       </button>
-      </br>
     </form>
   </div>
-</body>
-</html>
+</main>
+{% endblock %}
