@@ -129,13 +129,26 @@ def add_cottage():
         beds = int(request.form.get('beds') or 1)
         dogs = 1 if request.form.get('dogs', '') == 'yes' else 0
         image = request.form.get('image', '').strip()
+        url = request.form.get('url', '').strip()
         description = request.form.get('description', '').strip()
         submitted_by = session.get('user_name', 'Guest')
+        
+        # Get the new boolean fields
+        hottub = int(request.form.get('hottub', '0'))
+        secure_garden = int(request.form.get('secure_garden', '0'))
+        ev_charging = int(request.form.get('ev_charging', '0'))
+        parking = int(request.form.get('parking', '0'))
+        log_burner = int(request.form.get('log_burner', '0'))
+        high_chair = int(request.form.get('high_chair', '0'))
+        cot = int(request.form.get('cot', '0'))
+        
         db = get_db()
         db.execute(
-            "INSERT INTO cottages (name, location, price, beds, dogs_allowed, image, description, submitted_by) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (name, location, price, beds, dogs, image, description, submitted_by)
+            "INSERT INTO cottages (name, location, price, beds, dogs_allowed, image, url, description, "
+            "submitted_by, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (name, location, price, beds, dogs, image, url, description, submitted_by, 
+             hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot)
         )
         db.commit()
         flash('Cottage suggestion added')
