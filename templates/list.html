@@ -7,7 +7,10 @@
     {% for c in cottages %}
     <div class="bg-white p-4 rounded shadow">
       <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-48 object-cover rounded mb-2">
-      <h2 class="font-semibold text-lg">{{ c['name'] }}</h2>
+                  <h2 class="text-2xl font-bold">
+              <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                {{ c['name'] }} - open cottage website
+              </a>
       <p class="text-gray-600">{{ c['location'] }}</p>
       <p class="text-gray-500">{{ c['price'] }} / night</p>
       <p class="text-gray-500">
