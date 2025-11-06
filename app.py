@@ -10,9 +10,21 @@ SECRET_KEY = os.environ.get("CC_SECRET", "dev-secret-key")
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['DATABASE'] = str(DB_PATH)
+# Admin configuration: allow an admin override controlled by env var
+# CC_ALLOW_ADMIN_OVERRIDE: 'True'/'1'/'yes' to enable
+# CC_ADMIN_USERS: comma-separated list of admin usernames (defaults to 'admin')
+app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'False').lower() in ('1', 'true', 'yes')
+app.config['ADMIN_USERS'] = [u.strip() for u in os.environ.get('CC_ADMIN_USERS', 'admin').split(',') if u.strip()]
+
+
 @app.context_processor
 def inject_now():
-    return {'now': datetime.now}
+    # expose current time and admin info to templates
+    return {
+        'now': datetime.now,
+        'allow_admin_override': app.config.get('ALLOW_ADMIN_OVERRIDE', False),
+        'admin_users': app.config.get('ADMIN_USERS', [])
+    }
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -192,6 +204,16 @@ def vote(cottage_id):
 @app.route('/edit/<int:cottage_id>', methods=['GET', 'POST'])
 def edit_cottage(cottage_id):
     db = get_db()
+    # Ensure only the user who submitted the cottage can edit it
+    row = db.execute("SELECT submitted_by FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    if not row:
+        flash('Cottage not found')
+        return redirect(url_for('cottages'))
+    current_user = session.get('user_name', 'Guest')
+    if row['submitted_by'] != current_user:
+        flash('Not authorized to edit this cottage')
+        return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         location = request.form.get('location', '').strip()
@@ -234,6 +256,18 @@ def edit_cottage(cottage_id):
 @app.route('/delete/<int:cottage_id>', methods=['POST'])
 def delete_cottage(cottage_id):
     db = get_db()
+    # Only the user who submitted the cottage can delete it
+    row = db.execute("SELECT submitted_by FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    if not row:
+        flash('Cottage not found')
+        return redirect(url_for('cottages'))
+    current_user = session.get('user_name', 'Guest')
+    # allow admin override if enabled in config
+    is_admin = app.config.get('ALLOW_ADMIN_OVERRIDE', False) and current_user in app.config.get('ADMIN_USERS', [])
+    if row['submitted_by'] != current_user and not is_admin:
+        flash('Not authorized to delete this cottage')
+        return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
     # Remove related data first
     db.execute("DELETE FROM comments WHERE cottage_id = ?", (cottage_id,))
     db.execute("DELETE FROM votes WHERE cottage_id = ?", (cottage_id,))
@@ -249,15 +283,21 @@ def delete_cottage(cottage_id):
 def edit_comment(comment_id):
     db = get_db()
     text = request.form.get('text', '').strip()
-    # find cottage_id for redirect
-    row = db.execute("SELECT cottage_id FROM comments WHERE id = ?", (comment_id,)).fetchone()
+    # find cottage_id and author for redirect and permission check
+    row = db.execute("SELECT cottage_id, author FROM comments WHERE id = ?", (comment_id,)).fetchone()
     if not row:
         flash('Comment not found')
         return redirect(url_for('cottages'))
     cottage_id = row['cottage_id']
+    comment_author = row['author']
+    current_user = session.get('user_name', 'Guest')
+    if comment_author != current_user:
+        flash('Not authorized to edit this comment')
+        return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
     if text:
-        author = session.get('user_name', 'Guest')
-        db.execute("UPDATE comments SET text = ?, author = ? WHERE id = ?", (text, author, comment_id))
+        # Keep the author as the original author
+        db.execute("UPDATE comments SET text = ? WHERE id = ?", (text, comment_id))
         db.commit()
         flash('Comment updated')
     return redirect(url_for('cottage_detail', cottage_id=cottage_id))
@@ -266,11 +306,18 @@ def edit_comment(comment_id):
 @app.route('/comment/delete/<int:comment_id>', methods=['POST'])
 def delete_comment(comment_id):
     db = get_db()
-    row = db.execute("SELECT cottage_id FROM comments WHERE id = ?", (comment_id,)).fetchone()
+    row = db.execute("SELECT cottage_id, author FROM comments WHERE id = ?", (comment_id,)).fetchone()
     if not row:
         flash('Comment not found')
         return redirect(url_for('cottages'))
     cottage_id = row['cottage_id']
+    comment_author = row['author']
+    current_user = session.get('user_name', 'Guest')
+    is_admin = app.config.get('ALLOW_ADMIN_OVERRIDE', False) and current_user in app.config.get('ADMIN_USERS', [])
+    if comment_author != current_user and not is_admin:
+        flash('Not authorized to delete this comment')
+        return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
     db.execute("DELETE FROM comments WHERE id = ?", (comment_id,))
     db.commit()
     flash('Comment deleted')
@@ -280,11 +327,18 @@ def delete_comment(comment_id):
 @app.route('/vote/delete/<int:vote_id>', methods=['POST'])
 def delete_vote(vote_id):
     db = get_db()
-    row = db.execute("SELECT cottage_id FROM votes WHERE id = ?", (vote_id,)).fetchone()
+    row = db.execute("SELECT cottage_id, user_name FROM votes WHERE id = ?", (vote_id,)).fetchone()
     if not row:
         flash('Vote not found')
         return redirect(url_for('results'))
     cottage_id = row['cottage_id']
+    vote_user = row['user_name']
+    current_user = session.get('user_name', 'Guest')
+    is_admin = app.config.get('ALLOW_ADMIN_OVERRIDE', False) and current_user in app.config.get('ADMIN_USERS', [])
+    if vote_user != current_user and not is_admin:
+        flash('Not authorized to delete this vote')
+        return redirect(url_for('results'))
+
     db.execute("DELETE FROM votes WHERE id = ?", (vote_id,))
     # decrement cottage vote count but not below zero
     db.execute("UPDATE cottages SET votes = CASE WHEN votes > 0 THEN votes - 1 ELSE 0 END WHERE id = ?", (cottage_id,))
