@@ -319,6 +319,12 @@ def results():
         top=top,
         top_votes=top_votes
     )
+@app.route('/compare')
+def compare():
+    db = get_db()
+    cottages = db.execute("SELECT * FROM cottages ORDER BY name").fetchall()
+    return render_template('compare.html', cottages=cottages)
+
 @app.route('/results_data')
 def results_data():
     db = get_db()

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Cottage Comparison</h1>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-lg">
+            <thead class="bg-gray-100">
+                <tr class="text-left">
+                    <th class="sticky left-0 bg-gray-100 px-6 py-3 border-b">Feature</th>
+                    {% for cottage in cottages %}
+                    <th class="px-6 py-3 border-b">{{ cottage.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Location -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Location</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">{{ cottage.location }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Price -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Price</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">{{ cottage.price }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Bedrooms -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Bedrooms</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">{{ cottage.beds }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Dogs Allowed -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Dogs Allowed</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.dogs_allowed %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Hot Tub -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Hot Tub</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.hottub %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Secure Garden -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Secure Garden</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.secure_garden %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- EV Charging -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">EV Charging</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.ev_charging %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Parking -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Parking</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.parking %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Log Burner -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Log Burner</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.log_burner %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- High Chair -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">High Chair</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.high_chair %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Travel Cot -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Travel Cot</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        {% if cottage.cot %}
+                        <span class="text-green-600">✓</span>
+                        {% else %}
+                        <span class="text-red-600">✗</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Links -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Links</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">
+                        <a href="{{ cottage.url }}" target="_blank" class="text-blue-600 hover:underline">View Listing</a>
+                        <br>
+                        <a href="{{ url_for('cottage_detail', cottage_id=cottage.id) }}" class="text-blue-600 hover:underline">View Details</a>
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Votes -->
+                <tr class="hover:bg-gray-50">
+                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Votes</td>
+                    {% for cottage in cottages %}
+                    <td class="px-6 py-4 border-b">{{ cottage.votes }}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-8 flex justify-between">
+        <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:underline">&larr; Back to Cottages</a>
+        <a href="{{ url_for('results') }}" class="text-blue-600 hover:underline">View Results &rarr;</a>
+    </div>
+</div>
+{% endblock %}

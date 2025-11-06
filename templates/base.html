@@ -11,9 +11,11 @@
 
   <!-- Navigation -->
 <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
-<a href="{{ url_for('cottages') }}" class="text-xl font-semibold">Cottage Chooser</a>
-
-
+<div class="flex space-x-6">  <a href="{{ url_for('cottages') }}" class="text-xl font-semibold">List Cottages</a>
+</div>
+{% if session.get('user_name') %}
+<span class="text-gray-700">Hi, {{ session.get('user_name') }}</span>
+{% endif %}
   <!-- Mobile Toggle Button -->
   <button id="menuToggle" class="md:hidden text-2xl focus:outline-none">
     ☰
@@ -21,13 +23,14 @@
 
   <!-- Menu Items -->
   <div id="menuLinks" class="hidden md:flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4 mt-3 md:mt-0">
+    <a href="{{ url_for('compare') }}" class="text-gray-700 hover:text-gray-900">Compare</a>
   </br>
     <a href="{{ url_for('add_cottage') }}" class="text-gray-700 hover:text-gray-900">Add Cottage</a>
 </br>
     <a href="{{ url_for('results') }}" class="text-gray-700 hover:text-gray-900">Results</a>
 </br>
     {% if session.get('user_name') %}
-      <span class="text-gray-700">Hi, {{ session.get('user_name') }}</span>
+      
       <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Logout</a>
     {% else %}
       <a href="{{ url_for('join') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Login</a>
@@ -69,6 +72,59 @@ document.getElementById('menuToggle').onclick = function() {
       &copy; {{ now().year }} Cottage Voting App
     </div>
   </footer>
+  <script>
+  (function(){
+    // Prevent double clicks / double submits across the app
+    // Exclude the mobile menu toggle and elements marked with .no-disable or data-allow-multi
+    const ignoreSelector = '#menuToggle, .no-disable, [data-allow-multi]';
+
+    // Disable a button (visual + attribute)
+    function disableEl(el){
+      try{
+        el.disabled = true;
+        el.classList.add('opacity-50','cursor-not-allowed');
+      }catch(e){}
+    }
+    function enableEl(el){
+      try{
+        el.disabled = false;
+        el.classList.remove('opacity-50','cursor-not-allowed');
+      }catch(e){}
+    }
+
+    // Click handler: schedule disabling after current event loop so the click's native action
+    // and other click handlers run first. Do NOT use capture phase here.
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('button, input[type="submit"]');
+      if(!btn) return;
+      if(btn.matches(ignoreSelector)) return;
+      if(btn.disabled) return;
+      // Delay disabling to allow native behavior (form submission, other handlers) to proceed
+      setTimeout(() => {
+        // mark disabled, with a safety timeout to re-enable after 5s in case the action is handled via fetch
+        disableEl(btn);
+        setTimeout(()=> enableEl(btn), 5000);
+      }, 0);
+    }, false);
+
+    // On form submit, disable all submit buttons inside the form to avoid duplicate POSTs
+    document.addEventListener('submit', function(e){
+      const form = e.target;
+      if(!form) return;
+      const submits = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+      // Delay disabling so the form's submit processing continues uninterrupted
+      setTimeout(() => {
+        submits.forEach(s => { if(!s.matches(ignoreSelector)) disableEl(s); });
+        // safety re-enable after 5s
+        setTimeout(()=> submits.forEach(s=>{ if(!s.matches(ignoreSelector)) enableEl(s); }), 5000);
+      }, 0);
+    }, false);
+
+    // For fetch-based actions (like vote buttons) prefer adding class 're-enable-on-response' and
+    // let their existing JS re-enable or update the UI; the global timeout above will re-enable if needed.
+  })();
+  </script>
 
 </body>
 </html>
+ 
