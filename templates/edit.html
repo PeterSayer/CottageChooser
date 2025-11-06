@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="flex items-center justify-center flex-grow p-6">
+  <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-6 text-center">Edit Cottage</h1>
+
+    <form action="{{ url_for('edit_cottage', cottage_id=cottage['id']) }}" method="POST" class="space-y-4">
+      <input type="text" name="name" placeholder="Cottage Name" value="{{ cottage['name'] }}" class="w-full border rounded p-2" required>
+      <input type="text" name="location" placeholder="Location" value="{{ cottage['location'] }}" class="w-full border rounded p-2" required>
+      <input type="text" name="price" placeholder="Price per night (£)" value="{{ cottage['price'] }}" class="w-full border rounded p-2" required>
+      <input type="number" name="beds" placeholder="Number of beds" value="{{ cottage['beds'] }}" class="w-full border rounded p-2" min="1" required>
+      
+      <select name="dogs" class="w-full border rounded p-2">
+        <option value="no" {% if not cottage['dogs_allowed'] %}selected{% endif %}>Dogs not allowed</option>
+        <option value="yes" {% if cottage['dogs_allowed'] %}selected{% endif %}>Dogs allowed</option>
+      </select>
+
+      <input type="text" name="image" placeholder="Image URL" value="{{ cottage['image'] }}" class="w-full border rounded p-2">
+      <input type="text" name="url" placeholder="Booking Website URL" value="{{ cottage['url'] }}" class="w-full border rounded p-2">
+      
+      <select name="hottub" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['hottub'] %}selected{% endif %}>No Hot Tub</option>
+        <option value="1" {% if cottage['hottub'] %}selected{% endif %}>Has Hot Tub</option>
+      </select>
+      
+      <select name="secure_garden" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['secure_garden'] %}selected{% endif %}>No Secure Garden</option>
+        <option value="1" {% if cottage['secure_garden'] %}selected{% endif %}>Has Secure Garden</option>
+      </select>
+      
+      <select name="ev_charging" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['ev_charging'] %}selected{% endif %}>No EV Charging</option>
+        <option value="1" {% if cottage['ev_charging'] %}selected{% endif %}>Has EV Charging</option>
+      </select>
+      
+      <select name="parking" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['parking'] %}selected{% endif %}>No Parking</option>
+        <option value="1" {% if cottage['parking'] %}selected{% endif %}>Has Parking</option>
+      </select>
+      
+      <select name="log_burner" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['log_burner'] %}selected{% endif %}>No Log Burner</option>
+        <option value="1" {% if cottage['log_burner'] %}selected{% endif %}>Has Log Burner</option>
+      </select>
+      
+      <select name="high_chair" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['high_chair'] %}selected{% endif %}>No High Chair</option>
+        <option value="1" {% if cottage['high_chair'] %}selected{% endif %}>Has High Chair</option>
+      </select>
+      
+      <select name="cot" class="w-full border rounded p-2">
+        <option value="0" {% if not cottage['cot'] %}selected{% endif %}>No Cot</option>
+        <option value="1" {% if cottage['cot'] %}selected{% endif %}>Has Cot</option>
+      </select>
+
+      <textarea name="description" placeholder="Description" class="w-full border rounded p-2">{{ cottage['description'] }}</textarea>
+
+      <div class="flex space-x-4">
+        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+        <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+{% endblock %}

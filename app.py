@@ -189,6 +189,60 @@ def vote(cottage_id):
     return jsonify({'status': 'ok', 'votes': new_count})
 
 
+@app.route('/edit/<int:cottage_id>', methods=['GET', 'POST'])
+def edit_cottage(cottage_id):
+    db = get_db()
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        location = request.form.get('location', '').strip()
+        price = request.form.get('price', '').strip()
+        beds = int(request.form.get('beds') or 1)
+        dogs = 1 if request.form.get('dogs', '') == 'yes' else 0
+        image = request.form.get('image', '').strip()
+        url = request.form.get('url', '').strip()
+        description = request.form.get('description', '').strip()
+        
+        # Get the boolean fields
+        hottub = int(request.form.get('hottub', '0'))
+        secure_garden = int(request.form.get('secure_garden', '0'))
+        ev_charging = int(request.form.get('ev_charging', '0'))
+        parking = int(request.form.get('parking', '0'))
+        log_burner = int(request.form.get('log_burner', '0'))
+        high_chair = int(request.form.get('high_chair', '0'))
+        cot = int(request.form.get('cot', '0'))
+        
+        db.execute(
+            """UPDATE cottages SET 
+                name=?, location=?, price=?, beds=?, dogs_allowed=?, 
+                image=?, url=?, description=?, hottub=?, secure_garden=?,
+                ev_charging=?, parking=?, log_burner=?, high_chair=?, cot=?
+                WHERE id=?""",
+            (name, location, price, beds, dogs, image, url, description,
+             hottub, secure_garden, ev_charging, parking, log_burner, 
+             high_chair, cot, cottage_id)
+        )
+        db.commit()
+        flash('Cottage details updated')
+        return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
+    cottage = db.execute("SELECT * FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    if not cottage:
+        return "Not found", 404
+    return render_template('edit.html', cottage=cottage)
+
+
+@app.route('/delete/<int:cottage_id>', methods=['POST'])
+def delete_cottage(cottage_id):
+    db = get_db()
+    # Remove related data first
+    db.execute("DELETE FROM comments WHERE cottage_id = ?", (cottage_id,))
+    db.execute("DELETE FROM votes WHERE cottage_id = ?", (cottage_id,))
+    # Remove the cottage itself
+    db.execute("DELETE FROM cottages WHERE id = ?", (cottage_id,))
+    db.commit()
+    flash('Cottage deleted')
+    return redirect(url_for('cottages'))
+
 @app.route('/results')
 def results():
     db = get_db()

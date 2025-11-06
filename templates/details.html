@@ -3,20 +3,39 @@
 <main class="max-w-3xl mx-auto p-4">
   <div class="bg-white p-6 rounded-lg shadow">
     <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-64 object-cover rounded-md mb-4">
-    <h2 class="text-3xl font-bold mb-4"><p>
-  {% if c['url'] %}
-<h2 class="text-3xl font-bold mb-4">
-  <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-    {{ c['name'] }} - open cottage website
-  </a></h2>
 
-{% else %}
-<h2 class="text-3xl font-bold mb-4">{{ c['name'] }}</h2>
-{% endif %}
-
-</h2>
 </p>
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          {% if c['url'] %}
+            <h2 class="text-3xl font-bold">
+              <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+                {{ c['name'] }} - open cottage website
+              </a>
+            </h2>
+          {% else %}
+            <h2 class="text-3xl font-bold">{{ c['name'] }}</h2>
+          {% endif %}
+        </div>
+        <div class="flex items-center space-x-2">
+          <a href="{{ url_for('edit_cottage', cottage_id=c['id']) }}" 
+             class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit
+          </a>
 
+          <!-- Delete button opens confirmation modal -->
+          <button id="delete-btn" type="button" 
+                  class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Delete
+          </button>
+        </div>
+      </div>
     <p class="text-gray-600">{{ c['location'] }} - {{ c['price'] }} / night</p>
     
     <!-- Cottage Features -->
@@ -112,6 +131,20 @@
 
     <p class="mt-4">{{ c['description'] }}</p>
 
+    <!-- Delete confirmation modal -->
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded shadow max-w-md w-full">
+        <h3 class="text-xl font-bold mb-2 text-red-600">Delete cottage?</h3>
+        <p class="mb-4">This will permanently delete the cottage, its comments and votes. This action cannot be undone.</p>
+        <div class="flex justify-end space-x-2">
+          <button id="cancel-delete" class="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+          <form id="delete-form" action="{{ url_for('delete_cottage', cottage_id=c['id']) }}" method="post" style="display:inline">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Confirm Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Voting -->
     <div class="mt-4 flex items-center space-x-2">
       <div class="mt-2 flex items-center space-x-2">
@@ -199,6 +232,31 @@ document.querySelectorAll('.vote-btn').forEach(button => {
       setTimeout(() => msgDiv.textContent = "", 2000);
     }
   });
+});
+
+// Delete modal handlers
+const deleteModal = document.getElementById('delete-modal');
+const deleteBtn = document.getElementById('delete-btn');
+const cancelBtn = document.getElementById('cancel-delete');
+
+if (deleteBtn) {
+  deleteBtn.addEventListener('click', () => {
+    deleteModal.classList.remove('hidden');
+  });
+}
+
+if (cancelBtn) {
+  cancelBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    deleteModal.classList.add('hidden');
+  });
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+    deleteModal.classList.add('hidden');
+  }
 });
 </script>
 
