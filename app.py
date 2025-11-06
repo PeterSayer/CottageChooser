@@ -13,7 +13,7 @@ app.config['DATABASE'] = str(DB_PATH)
 # Admin configuration: allow an admin override controlled by env var
 # CC_ALLOW_ADMIN_OVERRIDE: 'True'/'1'/'yes' to enable
 # CC_ADMIN_USERS: comma-separated list of admin usernames (defaults to 'admin')
-app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'False').lower() in ('1', 'true', 'yes')
+app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'true').lower() in ('1', 'true', 'yes')
 app.config['ADMIN_USERS'] = [u.strip() for u in os.environ.get('CC_ADMIN_USERS', 'admin').split(',') if u.strip()]
 
 
