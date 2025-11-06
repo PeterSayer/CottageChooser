@@ -114,7 +114,7 @@ def cottage_detail(cottage_id):
     ).fetchall()
 
     votes = db.execute(
-        "SELECT user_name, voted_at FROM votes WHERE cottage_id = ? ORDER BY voted_at DESC", (cottage_id,)
+        "SELECT id, user_name, voted_at FROM votes WHERE cottage_id = ? ORDER BY voted_at DESC", (cottage_id,)
     ).fetchall()
 
     return render_template('details.html', c=cottage, comments=comments, votes=votes)
@@ -243,6 +243,55 @@ def delete_cottage(cottage_id):
     flash('Cottage deleted')
     return redirect(url_for('cottages'))
 
+
+# --- Comment edit/delete routes ---
+@app.route('/comment/edit/<int:comment_id>', methods=['POST'])
+def edit_comment(comment_id):
+    db = get_db()
+    text = request.form.get('text', '').strip()
+    # find cottage_id for redirect
+    row = db.execute("SELECT cottage_id FROM comments WHERE id = ?", (comment_id,)).fetchone()
+    if not row:
+        flash('Comment not found')
+        return redirect(url_for('cottages'))
+    cottage_id = row['cottage_id']
+    if text:
+        author = session.get('user_name', 'Guest')
+        db.execute("UPDATE comments SET text = ?, author = ? WHERE id = ?", (text, author, comment_id))
+        db.commit()
+        flash('Comment updated')
+    return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
+
+@app.route('/comment/delete/<int:comment_id>', methods=['POST'])
+def delete_comment(comment_id):
+    db = get_db()
+    row = db.execute("SELECT cottage_id FROM comments WHERE id = ?", (comment_id,)).fetchone()
+    if not row:
+        flash('Comment not found')
+        return redirect(url_for('cottages'))
+    cottage_id = row['cottage_id']
+    db.execute("DELETE FROM comments WHERE id = ?", (comment_id,))
+    db.commit()
+    flash('Comment deleted')
+    return redirect(url_for('cottage_detail', cottage_id=cottage_id))
+
+
+@app.route('/vote/delete/<int:vote_id>', methods=['POST'])
+def delete_vote(vote_id):
+    db = get_db()
+    row = db.execute("SELECT cottage_id FROM votes WHERE id = ?", (vote_id,)).fetchone()
+    if not row:
+        flash('Vote not found')
+        return redirect(url_for('results'))
+    cottage_id = row['cottage_id']
+    db.execute("DELETE FROM votes WHERE id = ?", (vote_id,))
+    # decrement cottage vote count but not below zero
+    db.execute("UPDATE cottages SET votes = CASE WHEN votes > 0 THEN votes - 1 ELSE 0 END WHERE id = ?", (cottage_id,))
+    db.commit()
+    flash('Vote deleted')
+    return redirect(url_for('results'))
+
 @app.route('/results')
 def results():
     db = get_db()
@@ -251,7 +300,7 @@ def results():
     cottages_with_votes = []
     for c in cottages:
         voters = db.execute(
-            "SELECT user_name, voted_at FROM votes WHERE cottage_id = ? ORDER BY voted_at DESC", (c['id'],)
+            "SELECT id, user_name, voted_at FROM votes WHERE cottage_id = ? ORDER BY voted_at DESC", (c['id'],)
         ).fetchall()
         cottages_with_votes.append(dict(c))
         cottages_with_votes[-1]['voters'] = voters
