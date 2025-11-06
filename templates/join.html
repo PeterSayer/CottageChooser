@@ -1,27 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
-<main class="flex items-center justify-center flex-grow p-6">
-  <div class="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-    <h1 class="text-2xl font-bold mb-6 text-center">Join the voting for the holiday cottage 2026</h1>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="mb-4">
+      {% for category, message in messages %}
+        <div class="p-2 rounded text-white 
+             {% if category == 'error' %}bg-red-500{% else %}bg-green-500{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
-    <form action="{{ url_for('join') }}" method="POST" class="space-y-4">
+<div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+  <div class="bg-white shadow-xl rounded-xl w-full max-w-md p-6 space-y-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800">Join CottageChooser</h1>
+    <p class="text-center text-gray-600 text-sm">Enter your name and the group code to continue.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="p-3 rounded text-white mb-2 {{ 'bg-red-500' if category=='error' else 'bg-green-500' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="space-y-4">
       <div>
-        <label for="name" class="block font-semibold mb-1">Your Name</label>
-        <input type="text" name="name" id="name" placeholder="Enter your name" 
-               class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+        <label class="block text-sm font-medium text-gray-700">Your Name</label>
+        <input type="text" name="user_name" value="{{ user_name|default('') }}" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
       </div>
 
       <div>
-        <label for="code" class="block font-semibold mb-1">Group Code</label>
-        <input type="text" name="code" id="code" placeholder="Enter group code" 
-               class="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <label class="block text-sm font-medium text-gray-700">Group Code</label>
+        <input type="text" name="group_code" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
       </div>
 
-      <button type="submit" 
-              class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold">
-        Join
-      </button>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition-all">Join</button>
     </form>
   </div>
-</main>
+</div>
 {% endblock %}
+

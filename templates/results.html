@@ -15,7 +15,10 @@
     {% for c in cottages %}
     <div class="bg-white p-4 rounded shadow cottage-card" data-id="{{ c['id'] }}">
       <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-48 object-cover rounded mb-2">
-      <h2 class="font-semibold text-lg">{{ c['name'] }}</h2>
+<h4 class="text-2xl font-bold mb-4">
+  <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+    {{ c['name'] }} - open cottage website
+  </a></h4>
       <p class="text-gray-500">
         Votes: <span class="vote-count" id="votes-{{ c['id'] }}">{{ c['votes'] }}</span>
       </p>

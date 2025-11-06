@@ -50,13 +50,28 @@ def init():
 @app.route('/join', methods=['GET', 'POST'])
 def join():
     if request.method == 'POST':
-        code = request.form.get('code', '').strip()
-        name = request.form.get('name', '').strip() or 'Guest'
-        session['group_code'] = code or 'default'
-        session['user_name'] = name
-        flash(f'Joined group as {name}')
+        user_name = request.form.get('user_name', '').strip()
+        group_code = request.form.get('group_code', '').strip().lower()
+
+        # Check for empty name
+        if not user_name:
+            flash("Please enter your name.", "error")
+            return render_template('join.html', user_name=user_name)
+
+        # Check for correct group code
+        if group_code != "saywards":
+            flash("Incorrect group code. Please try again.", "error")
+            return render_template('join.html', user_name=user_name)
+
+        # Successful login
+        session['user_name'] = user_name
         return redirect(url_for('cottages'))
+
     return render_template('join.html')
+
+
+
+
 
 
 @app.route('/logout')

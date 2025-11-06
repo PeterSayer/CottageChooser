@@ -54,14 +54,7 @@ document.getElementById('menuToggle').onclick = function() {
           </div>
         {% endfor %}
       </div>
-
-      <!-- Auto-refresh after 2 seconds -->
-      <script>
-        setTimeout(function() {
-          // Reload the page to show updated data
-          window.location.reload();
-        }, 2000); // 2000 milliseconds = 2 seconds
-      </script>
+   
     {% endif %}
   {% endwith %}
 </div>
