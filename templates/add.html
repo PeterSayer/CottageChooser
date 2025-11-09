@@ -7,7 +7,7 @@
     <form action="{{ url_for('add_cottage') }}" method="POST" class="space-y-4">
       <input type="text" name="name" placeholder="Cottage Name" class="w-full border rounded p-2" required>
       <input type="text" name="location" placeholder="Location" class="w-full border rounded p-2" required>
-      <input type="text" name="price" placeholder="Price per night (£)" class="w-full border rounded p-2" required>
+      <input type="text" name="price" placeholder="Price (£)" class="w-full border rounded p-2" required>
       <input type="number" name="beds" placeholder="Number of beds" class="w-full border rounded p-2" min="1" required>
       <select name="dogs" class="w-full border rounded p-2">
         <option value="no">Dogs not allowed</option>

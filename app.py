@@ -1,9 +1,15 @@
 from flask import Flask, g, render_template, request, redirect, url_for, session, jsonify, flash
+from markupsafe import Markup
 import sqlite3, os
+import bleach
 from pathlib import Path
 from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parent
+
+# Configure allowed HTML tags and attributes for descriptions
+ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'h1', 'h2', 'h3', 'h4', 'blockquote']
+ALLOWED_ATTRIBUTES = {}  # No attributes allowed for security
 DB_PATH = BASE_DIR / "data.db"
 SECRET_KEY = os.environ.get("CC_SECRET", "dev-secret-key")
 
@@ -15,6 +21,15 @@ app.config['DATABASE'] = str(DB_PATH)
 # CC_ADMIN_USERS: comma-separated list of admin usernames (defaults to 'admin')
 app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'true').lower() in ('1', 'true', 'yes')
 app.config['ADMIN_USERS'] = [u.strip() for u in os.environ.get('CC_ADMIN_USERS', 'admin').split(',') if u.strip()]
+
+
+def sanitize_html(text):
+    """Clean and sanitize HTML input"""
+    cleaned = bleach.clean(text or '', 
+                         tags=ALLOWED_TAGS,
+                         attributes=ALLOWED_ATTRIBUTES,
+                         strip=True)
+    return cleaned
 
 
 @app.context_processor
@@ -224,6 +239,9 @@ def edit_cottage(cottage_id):
         url = request.form.get('url', '').strip()
         description = request.form.get('description', '').strip()
         
+        # Sanitize HTML content
+        description = sanitize_html(description)
+        
         # Get the boolean fields
         hottub = int(request.form.get('hottub', '0'))
         secure_garden = int(request.form.get('secure_garden', '0'))
@@ -411,6 +429,22 @@ def results_data():
     top = cottages_list[0]['name'] if cottages_list else None
     top_votes = cottages_list[0]['votes'] if cottages_list else 0
     return jsonify({'top': top, 'top_votes': top_votes, 'cottages': cottages_list})
+
+
+@app.route('/presentation')
+def view_presentation():
+    # Get a list of slide images from the static/slides directory
+    slides_dir = os.path.join(app.static_folder, 'slides')
+    if os.path.exists(slides_dir):
+        slides = sorted([f for f in os.listdir(slides_dir) if f.endswith('.png') or f.endswith('.jpg')])
+        slide_paths = [url_for('static', filename=f'slides/{slide}') for slide in slides]
+    else:
+        slide_paths = []
+    
+    return render_template('presentation.html', 
+                         slides=slide_paths,
+                         total_slides=len(slide_paths),
+                         pptx_url=url_for('static', filename='presentation.pptx'))
 
 
 if __name__ == '__main__':

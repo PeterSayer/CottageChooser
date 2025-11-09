@@ -53,7 +53,13 @@
         <option value="1" {% if cottage['cot'] %}selected{% endif %}>Has Cot</option>
       </select>
 
-      <textarea name="description" placeholder="Description" class="w-full border rounded p-2">{{ cottage['description'] }}</textarea>
+      <div class="space-y-2">
+        <label class="block text-sm text-gray-700">Description (HTML formatting supported)</label>
+        <div class="bg-gray-50 p-2 text-sm text-gray-600 rounded mb-2">
+          Supported tags: p, br, strong (bold), em (italic), u (underline), ol, ul, li (lists), h1-h4 (headings), blockquote
+        </div>
+        <textarea name="description" placeholder="Description" class="w-full border rounded p-2 min-h-[200px] font-mono">{{ cottage['description'] }}</textarea>
+      </div>
 
       <div class="flex space-x-4">
         <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>

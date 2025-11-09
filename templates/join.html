@@ -14,9 +14,12 @@
 {% endwith %}
 
 <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-  <div class="bg-white shadow-xl rounded-xl w-full max-w-md p-6 space-y-6">
+    <div class="bg-white shadow-xl rounded-xl w-full max-w-md p-6 space-y-6">
     <h1 class="text-2xl font-bold text-center text-gray-800">Join Cottage Chooser</h1>
-    <p class="text-center text-gray-600 text-sm">Enter your name and the group code to continue.</p>
+    <h1 class="text-2xl font-bold text-center text-gray-800">click below to view</h1> 
+    <p class="text-center text-blue-600 text-sm"><h1 class="text-2xl font-bold text-center text-blue-800"> <a href="{{ url_for('view_presentation') }}" >Presentation</a></h1></p>
+    <h1 class="text-2xl font-bold text-center text-gray-800">or</h1>
+    <p class="text-center text-blue-600 text-sm">Enter your name and the group code to continue.</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
