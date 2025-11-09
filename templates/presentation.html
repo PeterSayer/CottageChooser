@@ -17,14 +17,14 @@
                 <div class="p-4 bg-gray-50 border-t flex justify-between items-center">
                     <div class="flex space-x-4">
                         <button id="prevSlide" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center disabled:opacity-50">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-tooltip="Go to the previous slide.">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
                             Previous
                         </button>
                         <button id="nextSlide" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center disabled:opacity-50">
                             Next
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-tooltip="Go to the next slide.">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </button>
@@ -57,8 +57,7 @@
 
     <div class="mt-8">
         <a href="{{ pptx_url }}" 
-           class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-           download>
+           class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" download data-tooltip="Download the PowerPoint presentation.">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>

@@ -5,50 +5,50 @@
     <h1 class="text-2xl font-bold mb-6 text-center">Edit Cottage</h1>
 
     <form action="{{ url_for('edit_cottage', cottage_id=cottage['id']) }}" method="POST" class="space-y-4">
-      <input type="text" name="name" placeholder="Cottage Name" value="{{ cottage['name'] }}" class="w-full border rounded p-2" required>
-      <input type="text" name="location" placeholder="Location" value="{{ cottage['location'] }}" class="w-full border rounded p-2" required>
-      <input type="text" name="price" placeholder="Price per night (£)" value="{{ cottage['price'] }}" class="w-full border rounded p-2" required>
-      <input type="number" name="beds" placeholder="Number of beds" value="{{ cottage['beds'] }}" class="w-full border rounded p-2" min="1" required>
+      <input type="text" name="name" placeholder="Cottage Name" value="{{ cottage['name'] }}" class="w-full border rounded p-2" required data-tooltip="Edit the cottage name.">
+      <input type="text" name="location" placeholder="Location" value="{{ cottage['location'] }}" class="w-full border rounded p-2" required data-tooltip="Edit the location of the cottage.">
+      <input type="text" name="price" placeholder="Price per night (£)" value="{{ cottage['price'] }}" class="w-full border rounded p-2" required data-tooltip="Edit the price per night in GBP.">
+      <input type="number" name="beds" placeholder="Number of beds" value="{{ cottage['beds'] }}" class="w-full border rounded p-2" min="1" required data-tooltip="Edit the number of beds available.">
       
-      <select name="dogs" class="w-full border rounded p-2">
+      <select name="dogs" class="w-full border rounded p-2" data-tooltip="Edit whether dogs are allowed.">
         <option value="no" {% if not cottage['dogs_allowed'] %}selected{% endif %}>Dogs not allowed</option>
         <option value="yes" {% if cottage['dogs_allowed'] %}selected{% endif %}>Dogs allowed</option>
       </select>
 
-      <input type="text" name="image" placeholder="Image URL" value="{{ cottage['image'] }}" class="w-full border rounded p-2">
-      <input type="text" name="url" placeholder="Booking Website URL" value="{{ cottage['url'] }}" class="w-full border rounded p-2">
+      <input type="text" name="image" placeholder="Image URL" value="{{ cottage['image'] }}" class="w-full border rounded p-2" data-tooltip="Edit the image URL for the cottage.">
+      <input type="text" name="url" placeholder="Booking Website URL" value="{{ cottage['url'] }}" class="w-full border rounded p-2" data-tooltip="Edit the booking website URL.">
       
-      <select name="hottub" class="w-full border rounded p-2">
+      <select name="hottub" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has a hot tub.">
         <option value="0" {% if not cottage['hottub'] %}selected{% endif %}>No Hot Tub</option>
         <option value="1" {% if cottage['hottub'] %}selected{% endif %}>Has Hot Tub</option>
       </select>
       
-      <select name="secure_garden" class="w-full border rounded p-2">
+      <select name="secure_garden" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has a secure garden.">
         <option value="0" {% if not cottage['secure_garden'] %}selected{% endif %}>No Secure Garden</option>
         <option value="1" {% if cottage['secure_garden'] %}selected{% endif %}>Has Secure Garden</option>
       </select>
       
-      <select name="ev_charging" class="w-full border rounded p-2">
+      <select name="ev_charging" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has EV charging.">
         <option value="0" {% if not cottage['ev_charging'] %}selected{% endif %}>No EV Charging</option>
         <option value="1" {% if cottage['ev_charging'] %}selected{% endif %}>Has EV Charging</option>
       </select>
       
-      <select name="parking" class="w-full border rounded p-2">
+      <select name="parking" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has parking.">
         <option value="0" {% if not cottage['parking'] %}selected{% endif %}>No Parking</option>
         <option value="1" {% if cottage['parking'] %}selected{% endif %}>Has Parking</option>
       </select>
       
-      <select name="log_burner" class="w-full border rounded p-2">
+      <select name="log_burner" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has a log burner.">
         <option value="0" {% if not cottage['log_burner'] %}selected{% endif %}>No Log Burner</option>
         <option value="1" {% if cottage['log_burner'] %}selected{% endif %}>Has Log Burner</option>
       </select>
       
-      <select name="high_chair" class="w-full border rounded p-2">
+      <select name="high_chair" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has a high chair.">
         <option value="0" {% if not cottage['high_chair'] %}selected{% endif %}>No High Chair</option>
         <option value="1" {% if cottage['high_chair'] %}selected{% endif %}>Has High Chair</option>
       </select>
       
-      <select name="cot" class="w-full border rounded p-2">
+      <select name="cot" class="w-full border rounded p-2" data-tooltip="Edit whether the cottage has a cot.">
         <option value="0" {% if not cottage['cot'] %}selected{% endif %}>No Cot</option>
         <option value="1" {% if cottage['cot'] %}selected{% endif %}>Has Cot</option>
       </select>
@@ -58,12 +58,20 @@
         <div class="bg-gray-50 p-2 text-sm text-gray-600 rounded mb-2">
           Supported tags: p, br, strong (bold), em (italic), u (underline), ol, ul, li (lists), h1-h4 (headings), blockquote
         </div>
-        <textarea name="description" placeholder="Description" class="w-full border rounded p-2 min-h-[200px] font-mono">{{ cottage['description'] }}</textarea>
+        <textarea name="description" placeholder="Description" class="w-full border rounded p-2 min-h-[200px] font-mono" data-tooltip="Edit the cottage description. HTML formatting is supported.">{{ cottage['description'] }}</textarea>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm text-gray-700">AI Review Summary</label>
+        <div class="bg-gray-50 p-2 text-sm text-gray-600 rounded mb-2">
+          You can manually edit the AI-generated review summary here, or use the Reviews page to generate a new one.
+        </div>
+        <textarea name="ai_review_summary" placeholder="AI-generated review summary" class="w-full border rounded p-2 min-h-[150px] font-mono" data-tooltip="Edit the AI-generated review summary for this cottage.">{{ cottage['ai_review_summary'] }}</textarea>
       </div>
 
       <div class="flex space-x-4">
-        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
-        <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-center">Cancel</a>
+        <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tooltip="Save your changes to this cottage.">Save Changes</button>
+        <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-center" data-tooltip="Cancel editing and return to cottage details.">Cancel</a>
       </div>
     </form>
   </div>

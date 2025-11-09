@@ -6,44 +6,74 @@
 
   <title>Cottage Voting App</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Help tooltips CSS (shown only when body has .help-mode) -->
+  <style>
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: 100%;               /* was bottom: 100% */
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;     /* slate-800 */
+      color: #fff;
+      padding: .4rem .6rem;
+      border-radius: .375rem;
+      font-size: .875rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease;
+      pointer-events: none;
+      z-index: 50;
+      margin-top: .35rem;      /* was margin-bottom */
+    }
+    .help-mode [data-tooltip]:hover::before { opacity: 1; visibility: visible; }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
   <!-- Navigation -->
 <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
 <div class="flex space-x-6">
-    <a href="{{ url_for('cottages') }}" class="text-xl font-semibold">List Cottages</a>
-    
-
+    <a href="{{ url_for('cottages') }}" class="text-xl font-semibold" data-tooltip="Go to the cottages list">List Cottages</a>
 </div>
 {% if session.get('user_name') %}
 <span class="text-gray-700">Hi, {{ session.get('user_name') }}</span>
 {% endif %}
   <!-- Mobile Toggle Button -->
    
-  <button id="menuToggle" class="md:hidden text-2xl focus:outline-none">
+  <button id="menuToggle" class="md:hidden text-2xl focus:outline-none" data-tooltip="Open the navigation menu">
     ☰
   </button>
 
   <!-- Menu Items -->
   <div id="menuLinks" class="hidden md:flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4 mt-3 md:mt-0 w-full md:w-auto">
     <!-- Use zebra/striped backgrounds on small screens; remove on md+ -->
-    <a href="{{ url_for('view_presentation') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900">Presentation</a>
-    <a href="{{ url_for('compare') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900">Compare</a>
-    <a href="{{ url_for('add_cottage') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900">Add Cottage</a>
-    <a href="{{ url_for('results') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900">Results</a>
+    <a href="{{ url_for('view_presentation') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900" data-tooltip="View the presentation slides">Presentation</a>
+    <a href="{{ url_for('compare') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900" data-tooltip="Compare cottages side by side">Compare</a>
+    <a href="{{ url_for('add_cottage') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900" data-tooltip="Add a new cottage">Add Cottage</a>
+    <a href="{{ url_for('results') }}" class="block w-full px-3 py-2 rounded odd:bg-white even:bg-gray-50 md:odd:bg-transparent md:even:bg-transparent md:w-auto md:px-0 md:py-0 text-gray-700 hover:text-gray-900" data-tooltip="View voting results">Results</a>
 
     {% if session.get('user_name') %}
       <div class="w-full md:w-auto">
-        <a href="{{ url_for('logout') }}" class="block w-full text-center md:inline-block bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Logout</a>
+        <a href="{{ url_for('logout') }}" class="block w-full text-center md:inline-block bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" data-tooltip="Log out">Logout</a>
       </div>
     {% else %}
       <div class="w-full md:w-auto">
-        <a href="{{ url_for('join') }}" class="block w-full text-center md:inline-block bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Login</a>
+        <a href="{{ url_for('join') }}" class="block w-full text-center md:inline-block bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded" data-tooltip="Log in or join">Login</a>
       </div>
     {% endif %}
   </div>
 </nav>
+
+<!-- Help Mode Toggle -->
+<button id="helpModeToggle"
+        class="fixed bottom-4 right-4 z-50 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg"
+        data-tooltip="Toggle help mode (show inline help on hover)">
+  <span id="helpModeStatus">Help: Off</span>
+</button>
 
 <script>
 document.getElementById('menuToggle').onclick = function() {
@@ -81,10 +111,7 @@ document.getElementById('menuToggle').onclick = function() {
   <script>
   (function(){
     // Prevent double clicks / double submits across the app
-    // Exclude the mobile menu toggle and elements marked with .no-disable or data-allow-multi
     const ignoreSelector = '#menuToggle, .no-disable, [data-allow-multi]';
-
-    // Disable a button (visual + attribute)
     function disableEl(el){
       try{
         el.disabled = true;
@@ -97,40 +124,46 @@ document.getElementById('menuToggle').onclick = function() {
         el.classList.remove('opacity-50','cursor-not-allowed');
       }catch(e){}
     }
-
-    // Click handler: schedule disabling after current event loop so the click's native action
-    // and other click handlers run first. Do NOT use capture phase here.
     document.addEventListener('click', function(e){
       const btn = e.target.closest('button, input[type="submit"]');
       if(!btn) return;
       if(btn.matches(ignoreSelector)) return;
       if(btn.disabled) return;
-      // Delay disabling to allow native behavior (form submission, other handlers) to proceed
       setTimeout(() => {
-        // mark disabled, with a safety timeout to re-enable after 5s in case the action is handled via fetch
         disableEl(btn);
         setTimeout(()=> enableEl(btn), 5000);
       }, 0);
     }, false);
-
-    // On form submit, disable all submit buttons inside the form to avoid duplicate POSTs
     document.addEventListener('submit', function(e){
       const form = e.target;
       if(!form) return;
       const submits = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-      // Delay disabling so the form's submit processing continues uninterrupted
       setTimeout(() => {
         submits.forEach(s => { if(!s.matches(ignoreSelector)) disableEl(s); });
-        // safety re-enable after 5s
         setTimeout(()=> submits.forEach(s=>{ if(!s.matches(ignoreSelector)) enableEl(s); }), 5000);
       }, 0);
     }, false);
+  })();
 
-    // For fetch-based actions (like vote buttons) prefer adding class 're-enable-on-response' and
-    // let their existing JS re-enable or update the UI; the global timeout above will re-enable if needed.
+  // Help mode persistence/toggle
+  (function(){
+    const body = document.body;
+    const toggle = document.getElementById('helpModeToggle');
+    const status = document.getElementById('helpModeStatus');
+    let helpOn = localStorage.getItem('helpMode') === 'true';
+    function render(){
+      if (helpOn) { body.classList.add('help-mode'); status.textContent = 'Help: On'; }
+      else { body.classList.remove('help-mode'); status.textContent = 'Help: Off'; }
+    }
+    render();
+    toggle?.addEventListener('click', () => {
+      helpOn = !helpOn;
+      localStorage.setItem('helpMode', helpOn ? 'true' : 'false');
+      render();
+    });
   })();
   </script>
 
 </body>
 </html>
- 
+

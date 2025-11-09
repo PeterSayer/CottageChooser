@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS cottages (
   description TEXT,
   submitted_by TEXT,
   votes INTEGER DEFAULT 0,
+  ai_review_summary TEXT,
   created_at DATETIME DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS comments (
@@ -17,5 +18,12 @@ CREATE TABLE IF NOT EXISTS comments (
   author TEXT,
   text TEXT,
   created_at DATETIME DEFAULT (datetime('now')),
+  FOREIGN KEY (cottage_id) REFERENCES cottages(id)
+);
+CREATE TABLE IF NOT EXISTS votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cottage_id INTEGER NOT NULL,
+  user_name TEXT NOT NULL UNIQUE,
+  voted_at DATETIME DEFAULT (datetime('now')),
   FOREIGN KEY (cottage_id) REFERENCES cottages(id)
 );

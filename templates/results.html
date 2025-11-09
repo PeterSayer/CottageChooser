@@ -1,106 +1,172 @@
 {% extends "base.html" %}
 {% block content %}
-<main class="max-w-6xl mx-auto p-4">
-  <h1 class="text-2xl font-bold mb-4">Voting Results</h1>
-
-  <div id="leaderboard">
-    {% if top %}
-      <div id="top-cottage" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-        🏆 Leading Cottage: <strong>{{ top }}</strong> ({{ top_votes }} vote{{ 's' if top_votes != 1 else '' }})
-      </div>
-    {% endif %}
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Results</h1>
+    <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Return to cottage list">&larr; Back</a>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {% for c in cottages %}
-    <div class="bg-white p-4 rounded shadow cottage-card" data-id="{{ c['id'] }}">
-      <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-48 object-cover rounded mb-2">
-<h4 class="text-2xl font-bold mb-4">
-  <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-    {{ c['name'] }} - open cottage website
-  </a></h4>
-      <p class="text-gray-500">
-        Votes: <span class="vote-count" id="votes-{{ c['id'] }}">{{ c['votes'] }}</span>
-      </p>
-
-      <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded vote-btn mt-2"
-              data-id="{{ c['id'] }}">
-        Vote
-      </button>
-      <div class="vote-msg mt-2 text-yellow-700"></div>
-
-      {% if c.voters %}
-      <div class="mt-3 bg-gray-50 p-2 rounded border border-gray-200">
-        <h3 class="font-medium text-gray-700 mb-1">Voters:</h3>
-        <ul class="text-gray-600 text-sm">
-          {% for v in c.voters %}
-          <li id="vote-{{ v['id'] }}">
-            <span class="vote-user">{{ v['user_name'] }}</span> - <span class="vote-time">{{ v['voted_at'] }}</span>
-            {% if session.get('user_name') and (session.get('user_name') == v['user_name'] or (allow_admin_override and session.get('user_name') in admin_users)) %}
-            <form action="{{ url_for('delete_vote', vote_id=v['id']) }}" method="post" style="display:inline">
-              <button type="submit" class="text-sm text-red-600 ml-2">Delete</button>
-            </form>
-            {% endif %}
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% else %}
-        <p class="text-gray-400 mt-2">No votes yet</p>
-      {% endif %}
+  {% if cottages %}
+    <div class="mb-4 text-sm text-gray-600">
+      Cottages: {{ cottages|length }} • Total votes: {{ total_votes }}
+      {% if my_vote %} • You voted{% endif %}
+      {% if is_admin %} • Admin mode{% endif %}
     </div>
-    {% endfor %}
-  </div>
-</main>
+
+    <!-- Desktop -->
+    <div class="hidden md:block bg-white shadow rounded overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cottage</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Votes</th>
+            <th class="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for c in cottages %}
+          <tr data-cottage-id="{{ c['id'] }}" class="hover:bg-gray-50">
+            <td class="px-4 py-2">{{ loop.index }}</td>
+            <td class="px-4 py-2">
+              <div class="font-medium">{{ c['name'] }}</div>
+              {% if c['location'] %}<div class="text-xs text-gray-500">{{ c['location'] }}</div>{% endif %}
+            </td>
+            <td class="px-4 py-2">
+              <span class="vote-count inline-flex px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 text-sm">{{ c['votes'] }}</span>
+            </td>
+            <td class="px-4 py-2 text-right space-x-2">
+              <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}"
+                 class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm"
+                 data-tooltip="View details">Details</a>
+              {% if my_vote and my_vote['cottage_id'] == c['id'] %}
+              <button class="delete-vote-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm"
+                      data-vote-id="{{ my_vote['id'] }}"
+                      data-tooltip="Delete your vote">Delete my vote</button>
+              {% endif %}
+              {% if is_admin %}
+              <button type="button"
+                      class="admin-toggle bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded text-sm"
+                      data-tooltip="Manage votes for this cottage">Manage votes</button>
+              {% endif %}
+            </td>
+          </tr>
+          {% if is_admin %}
+          <tr class="hidden admin-panel" data-admin-panel-for="{{ c['id'] }}">
+            <td colspan="4" class="px-4 pb-4">
+              <ul class="mt-2 border border-gray-200 rounded divide-y divide-gray-200 text-sm">
+                {% for v in votes_by_cottage.get(c['id'], []) %}
+                <li class="flex justify-between items-center px-3 py-2 admin-voter-item">
+                  <span>{{ v['user_name'] }}</span>
+                  <button class="delete-vote-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                          data-vote-id="{{ v['id'] }}"
+                          data-tooltip="Delete this vote">Delete</button>
+                </li>
+                {% else %}
+                <li class="px-3 py-2 text-gray-500">No votes yet.</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile -->
+    <div class="md:hidden space-y-3">
+      {% for c in cottages %}
+      <div class="bg-white rounded shadow p-4" data-cottage-id="{{ c['id'] }}">
+        <div class="flex justify-between">
+          <div>
+            <div class="text-xs text-gray-500">#{{ loop.index }}</div>
+            <h2 class="font-semibold">{{ c['name'] }}</h2>
+            {% if c['location'] %}<div class="text-xs text-gray-500">{{ c['location'] }}</div>{% endif %}
+          </div>
+          <span class="vote-count inline-flex px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 text-xs">{{ c['votes'] }} votes</span>
+        </div>
+        <div class="mt-3 space-x-2">
+          <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}"
+             class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm"
+             data-tooltip="View details">Details</a>
+          {% if my_vote and my_vote['cottage_id'] == c['id'] %}
+          <button class="delete-vote-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm"
+                  data-vote-id="{{ my_vote['id'] }}"
+                  data-tooltip="Delete your vote">Delete my vote</button>
+          {% endif %}
+          {% if is_admin %}
+          <button type="button"
+                  class="admin-toggle bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded text-sm"
+                  data-target="#madmin-{{ c['id'] }}"
+                  data-tooltip="Manage votes">Manage votes</button>
+          {% endif %}
+        </div>
+        {% if is_admin %}
+        <div id="madmin-{{ c['id'] }}" class="hidden mt-3 border border-gray-200 rounded divide-y divide-gray-200 text-sm">
+          {% for v in votes_by_cottage.get(c['id'], []) %}
+          <div class="flex justify-between items-center px-3 py-2 admin-voter-item">
+            <span>{{ v['user_name'] }}</span>
+            <button class="delete-vote-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
+                    data-vote-id="{{ v['id'] }}"
+                    data-tooltip="Delete this vote">Delete</button>
+          </div>
+          {% else %}
+          <div class="px-3 py-2 text-gray-500">No votes yet.</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="bg-white p-6 rounded shadow text-center text-gray-600">
+      No results yet. <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Go to cottages">Add or vote</a>
+    </div>
+  {% endif %}
+</div>
 
 <script>
-async function updateLeaderboard() {
-  try {
-    const res = await fetch("/results_data");
-    const data = await res.json();
-    const topDiv = document.getElementById("top-cottage");
-    if (data.top) {
-      topDiv.innerHTML = `🏆 Leading Cottage: <strong>${data.top}</strong> (${data.top_votes} vote${data.top_votes !== 1 ? 's' : ''})`;
-    }
-    // Update all vote counts
-    data.cottages.forEach(c => {
-      const voteSpan = document.getElementById(`votes-${c.id}`);
-      if (voteSpan) voteSpan.textContent = c.votes;
-    });
-  } catch(err) {
-    console.error("Failed to update leaderboard:", err);
+document.addEventListener('click', e => {
+  const t = e.target.closest('.admin-toggle');
+  if (!t) return;
+  const tr = t.closest('tr');
+  const panel = tr && tr.nextElementSibling;
+  if (panel && panel.matches('.admin-panel')) { panel.classList.toggle('hidden'); return; }
+  const targetSel = t.getAttribute('data-target');
+  if (targetSel) {
+    const el = document.querySelector(targetSel);
+    if (el) el.classList.toggle('hidden');
   }
-}
-
-document.querySelectorAll('.vote-btn').forEach(button => {
-  button.addEventListener('click', async () => {
-    const cottageId = button.dataset.id;
-    const voteSpan = document.getElementById(`votes-${cottageId}`);
-    const msgDiv = button.nextElementSibling;
-
-    try {
-      const response = await fetch(`/vote/${cottageId}`, { method: 'POST' });
-      const data = await response.json();
-
-      if (response.ok) {
-        voteSpan.textContent = data.vote;
-        msgDiv.textContent = "Vote registered!";
-        // Update leaderboard after voting
-        updateLeaderboard();
-        setTimeout(() => msgDiv.textContent = "", 2000);
-      } else {
-        msgDiv.textContent = data.status || "You already voted!";
-        setTimeout(() => msgDiv.textContent = "", 2000);
-      }
-    } catch (err) {
-      msgDiv.textContent = "Error! Try again.";
-      setTimeout(() => msgDiv.textContent = "", 2000);
-    }
-  });
 });
 
-// Edit vote inline handlers
-// (vote edit UI removed)
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('.delete-vote-btn');
+  if (!btn) return;
+  const id = btn.dataset.voteId;
+  btn.disabled = true;
+  btn.classList.add('opacity-50','cursor-not-allowed');
+  try {
+    const r = await fetch(`/vote/delete/${id}`, { method: 'POST' });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok || !data.ok) throw new Error(data.message || 'Delete failed');
+    const wrapper = btn.closest('[data-cottage-id]');
+    const countEl = wrapper?.querySelector('.vote-count');
+    if (countEl) {
+      const m = countEl.textContent.match(/\d+/);
+      if (m) {
+        const nv = Math.max(0, parseInt(m[0],10)-1);
+        countEl.textContent = countEl.textContent.includes('votes') ? `${nv} votes` : `${nv}`;
+      }
+    }
+    const voterItem = btn.closest('.admin-voter-item');
+    if (voterItem) voterItem.remove(); else btn.remove();
+  } catch(err) {
+    alert(err.message);
+    btn.disabled = false;
+    btn.classList.remove('opacity-50','cursor-not-allowed');
+  }
+});
 </script>
 {% endblock %}
 

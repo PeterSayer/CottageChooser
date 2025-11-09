@@ -4,6 +4,7 @@ import sqlite3, os
 import bleach
 from pathlib import Path
 from datetime import datetime
+from ai_reviews import update_cottage_review_summary
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -19,7 +20,7 @@ app.config['DATABASE'] = str(DB_PATH)
 # Admin configuration: allow an admin override controlled by env var
 # CC_ALLOW_ADMIN_OVERRIDE: 'True'/'1'/'yes' to enable
 # CC_ADMIN_USERS: comma-separated list of admin usernames (defaults to 'admin')
-app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'true').lower() in ('1', 'true', 'yes')
+app.config['ALLOW_ADMIN_OVERRIDE'] = os.environ.get('CC_ALLOW_ADMIN_OVERRIDE', 'false').lower() in ('1', 'true', 'yes')
 app.config['ADMIN_USERS'] = [u.strip() for u in os.environ.get('CC_ADMIN_USERS', 'admin').split(',') if u.strip()]
 
 
@@ -47,6 +48,36 @@ def get_db():
         db = g._database = sqlite3.connect(app.config['DATABASE'])
         db.row_factory = sqlite3.Row
     return db
+
+@app.route('/reviews/<int:cottage_id>')
+def reviews(cottage_id):
+    db = get_db()
+    cottage = db.execute(
+        'SELECT * FROM cottages WHERE id = ?',
+        (cottage_id,)
+    ).fetchone()
+    
+    if cottage is None:
+        return redirect(url_for('cottages'))
+        
+    return render_template('reviews.html', cottage=cottage)
+
+@app.route('/generate_review/<int:cottage_id>', methods=['POST'])
+def generate_review(cottage_id):
+    if not session.get('user_name'):
+        return jsonify({'error': 'You must be logged in to generate reviews'}), 403
+        
+    # Check if user is admin
+    if session.get('user_name') not in app.config['ADMIN_USERS']:
+        return jsonify({'error': 'Only administrators can generate reviews'}), 403
+        
+    db = get_db()
+    success, message = update_cottage_review_summary(db, cottage_id)
+    
+    if success:
+        return jsonify({'message': message})
+    else:
+        return jsonify({'error': message}), 400
 
 
 @app.teardown_appcontext
@@ -169,13 +200,18 @@ def add_cottage():
         high_chair = int(request.form.get('high_chair', '0'))
         cot = int(request.form.get('cot', '0'))
         
+        # Get the AI review summary
+        ai_review_summary = request.form.get('ai_review_summary', '').strip()
+        
         db = get_db()
         db.execute(
             "INSERT INTO cottages (name, location, price, beds, dogs_allowed, image, url, description, "
-            "submitted_by, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "submitted_by, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, "
+            "ai_review_summary) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (name, location, price, beds, dogs, image, url, description, submitted_by, 
-             hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot)
+             hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot,
+             ai_review_summary)
         )
         db.commit()
         flash('Cottage suggestion added')
@@ -186,32 +222,43 @@ def add_cottage():
 @app.route('/vote/<int:cottage_id>', methods=['POST'])
 def vote(cottage_id):
     db = get_db()
-    voted = session.get('voted', [])
+    # Require a logged-in user (no anonymous/Guest votes)
+    current_user = session.get('user_name')
+    if not current_user:
+        return jsonify({'status': 'not_logged_in', 'message': 'Please join the voting group to vote.'}), 401
 
-    if cottage_id in voted:
+    # Check if this user already has a vote recorded (one vote per user across all cottages)
+    existing = db.execute("SELECT id, cottage_id FROM votes WHERE user_name = ?", (current_user,)).fetchone()
+    if existing:
+        # If they already voted for this cottage, return appropriate message
+        if existing['cottage_id'] == cottage_id:
+            row = db.execute("SELECT votes FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+            return jsonify({'status': 'already_voted', 'votes': row['votes']}), 400
+        else:
+            # They voted for a different cottage - instruct them to delete first
+            return jsonify({'status': 'already_voted_elsewhere', 'cottage_id': existing['cottage_id'], 'vote_id': existing['id']}), 400
+
+    # Proceed to record the vote
+    try:
+        db.execute("UPDATE cottages SET votes = votes + 1 WHERE id = ?", (cottage_id,))
+        voted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        db.execute("INSERT INTO votes (cottage_id, user_name, voted_at) VALUES (?, ?, ?)",
+                   (cottage_id, current_user, voted_at))
+        db.commit()
+    except sqlite3.IntegrityError:
+        # Unique constraint on user_name prevented duplicate voting
         row = db.execute("SELECT votes FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
-        return jsonify({'status': 'already voted', 'votes': row['votes']}), 400
-
-    # Update cottage vote count
-    db.execute("UPDATE cottages SET votes = votes + 1 WHERE id = ?", (cottage_id,))
-    db.commit()
-
-    # Record who voted and when
-    user_name = session.get('user_name', 'Guest')
-    voted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    db.execute(
-        "INSERT INTO votes (cottage_id, user_name, voted_at) VALUES (?, ?, ?)",
-        (cottage_id, user_name, voted_at)
-    )
-    db.commit()
+        return jsonify({'status': 'already_voted', 'votes': row['votes']}), 400
 
     # Fetch new vote count
     row = db.execute("SELECT votes FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
     new_count = row['votes']
 
-    # Track in session
-    voted.append(cottage_id)
-    session['voted'] = voted
+    # Update session list for faster client-side feedback (optional)
+    voted = session.get('voted', [])
+    if cottage_id not in voted:
+        voted.append(cottage_id)
+        session['voted'] = voted
 
     return jsonify({'status': 'ok', 'votes': new_count})
 
@@ -251,15 +298,19 @@ def edit_cottage(cottage_id):
         high_chair = int(request.form.get('high_chair', '0'))
         cot = int(request.form.get('cot', '0'))
         
+        # Get the AI review summary
+        ai_review_summary = request.form.get('ai_review_summary', '').strip()
+        
         db.execute(
             """UPDATE cottages SET 
                 name=?, location=?, price=?, beds=?, dogs_allowed=?, 
                 image=?, url=?, description=?, hottub=?, secure_garden=?,
-                ev_charging=?, parking=?, log_burner=?, high_chair=?, cot=?
+                ev_charging=?, parking=?, log_burner=?, high_chair=?, cot=?,
+                ai_review_summary=?
                 WHERE id=?""",
             (name, location, price, beds, dogs, image, url, description,
              hottub, secure_garden, ev_charging, parking, log_burner, 
-             high_chair, cot, cottage_id)
+             high_chair, cot, ai_review_summary, cottage_id)
         )
         db.commit()
         flash('Cottage details updated')
@@ -342,55 +393,75 @@ def delete_comment(comment_id):
     return redirect(url_for('cottage_detail', cottage_id=cottage_id))
 
 
-@app.route('/vote/delete/<int:vote_id>', methods=['POST'])
+@app.post("/vote/delete/<int:vote_id>")
 def delete_vote(vote_id):
-    db = get_db()
-    row = db.execute("SELECT cottage_id, user_name FROM votes WHERE id = ?", (vote_id,)).fetchone()
-    if not row:
-        flash('Vote not found')
-        return redirect(url_for('results'))
-    cottage_id = row['cottage_id']
-    vote_user = row['user_name']
-    current_user = session.get('user_name', 'Guest')
-    is_admin = app.config.get('ALLOW_ADMIN_OVERRIDE', False) and current_user in app.config.get('ADMIN_USERS', [])
-    if vote_user != current_user and not is_admin:
-        flash('Not authorized to delete this vote')
-        return redirect(url_for('results'))
+    if not session.get("user_name"):
+        return jsonify({"ok": False, "message": "Not logged in"}), 403
 
+    db = get_db()
+    row = db.execute("SELECT id, user_name, cottage_id FROM votes WHERE id = ?", (vote_id,)).fetchone()
+    if not row:
+        return jsonify({"ok": False, "message": "Vote not found"}), 404
+
+    # Use the same admin check everywhere
+    if (_norm(row["user_name"]) != _norm(session.get("user_name"))) and (not is_admin()):
+        return jsonify({"ok": False, "message": "Not permitted"}), 403
+
+    # If you denormalize votes into cottages.votes, keep this; otherwise remove it.
+    db.execute("UPDATE cottages SET votes = CASE WHEN votes > 0 THEN votes - 1 ELSE 0 END WHERE id = ?", (row["cottage_id"],))
     db.execute("DELETE FROM votes WHERE id = ?", (vote_id,))
-    # decrement cottage vote count but not below zero
-    db.execute("UPDATE cottages SET votes = CASE WHEN votes > 0 THEN votes - 1 ELSE 0 END WHERE id = ?", (cottage_id,))
     db.commit()
-    flash('Vote deleted')
-    return redirect(url_for('results'))
+
+    return jsonify({"ok": True, "cottage_id": row["cottage_id"], "vote_id": vote_id})
+
+
+# Normalize and centralize admin logic
+def _norm(name: str) -> str:
+    return (name or "").strip().casefold()
+
+def get_admins():
+    # CC_ADMINS env var: "Alice,Bob"
+    env_list = [_norm(u) for u in os.environ.get("CC_ADMINS", "").split(",") if u.strip()]
+    cfg_list = [_norm(u) for u in app.config.get("ADMIN_USERS", [])]
+    return set(env_list + cfg_list)
+
+def is_admin():
+    return _norm(session.get("user_name")) in get_admins()
+
+@app.context_processor
+def inject_admin_flags():
+    # Makes `is_admin` available in all templates
+    return {"is_admin": is_admin()}
 
 @app.route('/results')
 def results():
     db = get_db()
-    cottages = db.execute("SELECT * FROM cottages ORDER BY votes DESC").fetchall()
+    rows = db.execute('SELECT * FROM cottages ORDER BY votes DESC, name ASC').fetchall()
+    cottages = [dict(r) for r in rows]
 
-    cottages_with_votes = []
-    for c in cottages:
-        voters = db.execute(
-            "SELECT id, user_name, voted_at FROM votes WHERE cottage_id = ? ORDER BY voted_at DESC", (c['id'],)
-        ).fetchall()
-        cottages_with_votes.append(dict(c))
-        cottages_with_votes[-1]['voters'] = voters
+    total_votes = db.execute('SELECT COUNT(*) AS c FROM votes').fetchone()['c']
 
-    # Determine leader
-    top = None
-    top_votes = 0
-    if cottages_with_votes:
-        leader = max(cottages_with_votes, key=lambda x: x['votes'])
-        top = leader['name']
-        top_votes = leader['votes']
+    my_vote = None
+    if session.get('user_name'):
+        rv = db.execute('SELECT id, cottage_id FROM votes WHERE user_name=?', (session['user_name'],)).fetchone()
+        if rv:
+            my_vote = dict(rv)
+
+    vote_rows = db.execute('SELECT id, cottage_id, user_name FROM votes').fetchall()
+    votes_by_cottage = {}
+    for r in vote_rows:
+        d = dict(r)
+        votes_by_cottage.setdefault(d['cottage_id'], []).append(d)
 
     return render_template(
         'results.html',
-        cottages=cottages_with_votes,
-        top=top,
-        top_votes=top_votes
+        cottages=cottages,
+        total_votes=total_votes,
+        my_vote=my_vote,
+        is_admin=is_admin(),  # unified admin check
+        votes_by_cottage=votes_by_cottage
     )
+
 @app.route('/compare')
 def compare():
     db = get_db()

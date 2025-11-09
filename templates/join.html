@@ -36,15 +36,15 @@
     <form method="POST" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700">Your Name</label>
-        <input type="text" name="user_name" value="{{ user_name|default('') }}" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <input type="text" name="user_name" value="{{ user_name|default('') }}" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required data-tooltip="Enter your name to join the group.">
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700">Group Code</label>
-        <input type="text" name="group_code" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <input type="text" name="group_code" class="border border-gray-300 rounded w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required data-tooltip="Enter the group code to join.">
       </div>
 
-  <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition-all no-disable">Join</button>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition-all no-disable" data-tooltip="Join the voting group.">Join</button>
     </form>
   </div>
 </div>

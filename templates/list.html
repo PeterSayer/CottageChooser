@@ -8,9 +8,7 @@
     <div class="bg-white p-4 rounded shadow">
       <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-48 object-cover rounded mb-2">
                   <h2 class="text-2xl font-bold">
-              <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-                {{ c['name'] }} - open cottage website
-              </a>
+              <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline" data-tooltip="Open the official website for this cottage in a new tab.">{{ c['name'] }} - open cottage website</a>
       <p class="text-gray-600">{{ c['location'] }}</p>
       <p class="text-gray-500">{{ c['price'] }}</p>
       <p class="text-gray-500">
@@ -20,6 +18,7 @@
 
       <div class="mt-2 flex items-center space-x-2">
 <div class="mt-2 flex items-center space-x-2">
+{% if session.get('user_name') %}
 <button 
   data-id="{{ c['id'] }}"
   class="vote-btn px-3 py-1 rounded text-white 
@@ -29,6 +28,7 @@
            bg-blue-500 hover:bg-blue-600
          {% endif %}"
   {% if c['id'] in session.get('voted', []) %}disabled{% endif %}
+  data-tooltip="Vote for this cottage. You can only vote for one cottage."
 >
   {% if c['id'] in session.get('voted', []) %}
     Voted
@@ -36,18 +36,26 @@
     Vote
   {% endif %}
 </button>
+{% else %}
+  <button class="px-3 py-1 rounded bg-gray-300 text-white cursor-not-allowed" disabled title="Log in to vote">Login to vote</button>
+  <a href="{{ url_for('join') }}" class="ml-2 text-blue-600 underline" data-tooltip="Join the voting group to vote.">Join</a>
+{% endif %}
 
 
   <span class="vote-count" id="votes-{{ c['id'] }}">{{ c['votes'] }} vote{{ 's' if c['votes'] != 1 else '' }}</span>
 </div>
-<div class="vote-msg mt-2 text-yellow-700"></div>
+      <div class="vote-msg mt-2 text-yellow-700"></div>
 
-      
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-tooltip="View details for this cottage.">Details</a>
+        <a href="{{ url_for('reviews', cottage_id=c['id']) }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" data-tooltip="View reviews and AI summary for this cottage.">
+          Reviews
+          {% if c['ai_review_summary'] %}
+          <span class="inline-block ml-1 text-xs bg-white text-green-700 px-1 rounded">AI</span>
+          {% endif %}
+        </a>
       </div>
-
-      <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}" class="text-blue-600 hover:underline mt-2 block">
-        View Details
-      </a>
+      </div>
     </div>
     {% endfor %}
   </div>
@@ -84,8 +92,13 @@ document.querySelectorAll('.vote-btn').forEach(button => {
         msgDiv.textContent = "Vote registered!";
         setTimeout(() => msgDiv.textContent = "", 2000);
       } else {
-        msgDiv.textContent = "You already voted!";
-        setTimeout(() => msgDiv.textContent = "", 2000);
+        // Handle specific server-side statuses
+        if (data.status === 'already_voted_elsewhere') {
+          showVoteConflict(msgDiv, data.cottage_id, data.vote_id, cottageId, button);
+        } else {
+          msgDiv.textContent = data.message || data.status || "You already voted!";
+          setTimeout(() => msgDiv.textContent = "", 3000);
+        }
       }
     } catch (err) {
       msgDiv.textContent = "Error! Try again.";
@@ -93,6 +106,48 @@ document.querySelectorAll('.vote-btn').forEach(button => {
     }
   });
 });
+
+function showVoteConflict(container, existingCottageId, existingVoteId, originalCottageId, origButton) {
+  container.innerHTML = '';
+  const info = document.createElement('div');
+  info.className = 'p-3 bg-yellow-100 rounded';
+  info.innerHTML = `You already voted for <a href="/cottage/${existingCottageId}" class="text-blue-600 underline">that cottage</a>. `;
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'ml-2 px-3 py-1 bg-red-500 text-white rounded';
+  delBtn.textContent = 'Delete my previous vote';
+
+  delBtn.addEventListener('click', async () => {
+    delBtn.disabled = true;
+    try {
+      const res = await fetch(`/vote/delete/${existingVoteId}`, { method: 'POST' });
+      if (res.ok) {
+        // retry original vote
+        const retry = await fetch(`/vote/${originalCottageId}`, { method: 'POST' });
+        const retryData = await retry.json();
+        if (retry.ok) {
+          const voteSpan = document.getElementById(`votes-${originalCottageId}`);
+          if (voteSpan) voteSpan.textContent = retryData.votes;
+          origButton.disabled = true;
+          origButton.classList.add('bg-gray-400','cursor-not-allowed');
+          origButton.classList.remove('bg-blue-500','hover:bg-blue-600');
+          container.textContent = 'Switched vote successfully.';
+          setTimeout(()=> container.textContent = '', 3000);
+        } else {
+          container.textContent = retryData.message || retryData.status || 'Vote failed after deleting previous vote.';
+        }
+      } else {
+        const err = await res.json().catch(()=>({}));
+        container.textContent = err.message || err.status || 'Failed to delete previous vote.';
+      }
+    } catch (e) {
+      container.textContent = 'Error performing request.';
+    }
+  });
+
+  info.appendChild(delBtn);
+  container.appendChild(info);
+}
 </script>
 
 

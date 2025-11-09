@@ -51,7 +51,15 @@
         <option value="1">Has Cot</option>
       </select>
 
-      <textarea name="description" placeholder="Description" class="w-full border rounded p-2"></textarea>
+      <div class="space-y-2">
+        <label class="block text-sm text-gray-700">Description (HTML formatting supported)</label>
+        <textarea name="description" placeholder="Description" class="w-full border rounded p-2"></textarea>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm text-gray-700">AI Review Summary (Optional)</label>
+        <textarea name="ai_review_summary" placeholder="AI-generated review summary" class="w-full border rounded p-2 min-h-[100px]"></textarea>
+      </div>
 
       <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Cottage</button>
     </form>
