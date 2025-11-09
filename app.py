@@ -4,7 +4,6 @@ import sqlite3, os
 import bleach
 from pathlib import Path
 from datetime import datetime
-from ai_reviews import update_cottage_review_summary
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -56,29 +55,9 @@ def reviews(cottage_id):
         'SELECT * FROM cottages WHERE id = ?',
         (cottage_id,)
     ).fetchone()
-    
     if cottage is None:
         return redirect(url_for('cottages'))
-        
     return render_template('reviews.html', cottage=cottage)
-
-@app.route('/generate_review/<int:cottage_id>', methods=['POST'])
-def generate_review(cottage_id):
-    if not session.get('user_name'):
-        return jsonify({'error': 'You must be logged in to generate reviews'}), 403
-        
-    # Check if user is admin
-    if session.get('user_name') not in app.config['ADMIN_USERS']:
-        return jsonify({'error': 'Only administrators can generate reviews'}), 403
-        
-    db = get_db()
-    success, message = update_cottage_review_summary(db, cottage_id)
-    
-    if success:
-        return jsonify({'message': message})
-    else:
-        return jsonify({'error': message}), 400
-
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -200,18 +179,13 @@ def add_cottage():
         high_chair = int(request.form.get('high_chair', '0'))
         cot = int(request.form.get('cot', '0'))
         
-        # Get the AI review summary
-        ai_review_summary = request.form.get('ai_review_summary', '').strip()
-        
         db = get_db()
         db.execute(
             "INSERT INTO cottages (name, location, price, beds, dogs_allowed, image, url, description, "
-            "submitted_by, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, "
-            "ai_review_summary) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "submitted_by, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (name, location, price, beds, dogs, image, url, description, submitted_by, 
-             hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot,
-             ai_review_summary)
+             hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot)
         )
         db.commit()
         flash('Cottage suggestion added')
@@ -298,19 +272,15 @@ def edit_cottage(cottage_id):
         high_chair = int(request.form.get('high_chair', '0'))
         cot = int(request.form.get('cot', '0'))
         
-        # Get the AI review summary
-        ai_review_summary = request.form.get('ai_review_summary', '').strip()
-        
         db.execute(
             """UPDATE cottages SET 
                 name=?, location=?, price=?, beds=?, dogs_allowed=?, 
                 image=?, url=?, description=?, hottub=?, secure_garden=?,
-                ev_charging=?, parking=?, log_burner=?, high_chair=?, cot=?,
-                ai_review_summary=?
+                ev_charging=?, parking=?, log_burner=?, high_chair=?, cot=?
                 WHERE id=?""",
             (name, location, price, beds, dogs, image, url, description,
              hottub, secure_garden, ev_charging, parking, log_burner, 
-             high_chair, cot, ai_review_summary, cottage_id)
+             high_chair, cot, cottage_id)
         )
         db.commit()
         flash('Cottage details updated')
@@ -516,6 +486,16 @@ def view_presentation():
                          slides=slide_paths,
                          total_slides=len(slide_paths),
                          pptx_url=url_for('static', filename='presentation.pptx'))
+
+
+@app.route("/guide")
+def user_guide():
+    return render_template("user_guide.html")
+
+
+@app.route("/support")
+def tech_support():
+    return render_template("tech_support.html")
 
 
 if __name__ == '__main__':

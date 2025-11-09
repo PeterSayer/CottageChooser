@@ -1,7 +1,4 @@
-flask==3.0.0
-bleach
-requests==2.31.0
-beautifulsoup4==4.12.2
-python-dotenv==1.0.0
-openai>=1.50.0
-httpx>=0.27.0
+flask>=2.2,<3
+bleach>=6.1
+requests>=2.31
+# openai removed (manual summaries only now)

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-semibold text-gray-900">Cottage Chooser – User Guide</h1>
+    <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Back to the cottage list">
+      &larr; Back to Cottages
+    </a>
+  </div>
+
+  <p class="text-gray-700 mb-6">
+    Welcome to Cottage Chooser. This guide explains how to browse cottages, vote, add entries, and follow the rules.
+    Turn on Help Mode to see inline tips on buttons and links.
+  </p>
+
+  <div class="space-y-10">
+
+    <section id="quick-start">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Quick Start</h2>
+      <ol class="list-decimal ml-6 space-y-2 text-gray-700">
+        <li>Join/Login: Use the “Login” link in the top-right to join the group.</li>
+        <li>Browse: Open “List Cottages” to see all entries, or “Compare” to view side by side.</li>
+        <li>Details: Click “Details” on any cottage to view photos, features, and comments.</li>
+        <li>Vote: Click “Vote” on your favorite cottage. You can only have one vote at a time.</li>
+        <li>Results: Open “Results” to see rankings. You can delete your vote there if you want to change it.</li>
+        <li>Help Mode: Click the floating “Help” button to show tooltips on interactive elements.</li>
+      </ol>
+    </section>
+
+    <section id="voting">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Voting</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>One vote per user at a time. To change your choice, delete your existing vote and vote again.</li>
+        <li>You must be logged in (joined) to vote.</li>
+        <li>Results update automatically. Ties may be resolved by a follow‑up vote or admin decision.</li>
+        <li>Be fair: no duplicate accounts, and don’t vote on behalf of others.</li>
+      </ul>
+    </section>
+
+    <section id="add-cottage">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Adding and Editing Cottages</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>Use “Add Cottage” to submit a new entry. Include name, location, price, beds, features, and a booking link.</li>
+        <li>Images: Provide a valid image URL. Large images are fine; they’ll be scaled automatically.</li>
+        <li>Dogs/amenities: Mark features accurately (dogs allowed, hot tub, parking, EV, etc.).</li>
+        <li>Descriptions support basic formatting; keep them concise and relevant.</li>
+        <li>Owners can edit their own cottages. Admins may edit or remove entries that break rules.</li>
+      </ul>
+    </section>
+
+    <section id="details-page">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Cottage Details, Comments, and Reviews</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>Details page shows the overview, features, and any user comments.</li>
+        <li>Comments: Be respectful and constructive. No spam, advertising, or personal data.</li>
+        <li>AI Review Summary (Admin): Admins can generate/update an AI summary of reviews for clarity.</li>
+      </ul>
+    </section>
+
+    <section id="results">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Results Page</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>See current rankings and vote totals.</li>
+        <li>“Delete my vote” appears on the row of the cottage you voted for (when logged in).</li>
+        <li>Admins can manage votes (view and delete any vote) to resolve mistakes or rule violations.</li>
+      </ul>
+    </section>
+
+    <section id="presentation">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Presentation</h2>
+      <p class="text-gray-700">
+        Use “Presentation” to step through the shortlisted cottages during a meeting. You can download slides if enabled.
+      </p>
+    </section>
+
+    <section id="rules">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rules of Use</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>Honesty: One account per person. One active vote at a time.</li>
+        <li>Respect: Keep comments civil. No harassment, hate speech, or inappropriate content.</li>
+        <li>Relevance: Only add cottages that meet the group’s criteria (budget, location, amenities).</li>
+        <li>Accuracy: Use correct prices, locations, and features. Link to reputable booking sites.</li>
+        <li>Privacy: Do not post sensitive personal information.</li>
+        <li>Moderation: Admins may edit/remove content or votes that break these rules.</li>
+      </ul>
+    </section>
+
+    <section id="faq">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">FAQ & Troubleshooting</h2>
+      <div class="space-y-4">
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">I can’t vote.</summary>
+          <p class="mt-2 text-gray-700">Make sure you’re logged in (joined). If you already voted, delete your current vote on the Results page first.</p>
+        </details>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">“Delete my vote” isn’t visible.</summary>
+          <p class="mt-2 text-gray-700">It only shows for the cottage you voted for and when you’re logged in.</p>
+        </details>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Tooltips aren’t showing.</summary>
+          <p class="mt-2 text-gray-700">Click the floating “Help” button to enable Help Mode, then hover links and buttons.</p>
+        </details>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">The site looks unstyled.</summary>
+          <p class="mt-2 text-gray-700">Do a hard refresh (Ctrl+F5). If it persists, try another browser or contact an admin.</p>
+        </details>
+      </div>
+    </section>
+
+    <div class="mt-10 flex items-center gap-3">
+      <a href="{{ url_for('cottages') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tooltip="Back to the cottage list">Back to Cottages</a>
+      <a href="{{ url_for('results') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded" data-tooltip="Open the results page">View Results</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
