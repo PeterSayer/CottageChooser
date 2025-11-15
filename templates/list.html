@@ -11,9 +11,21 @@
       {% endif %}
       
       <div class="p-4">
-        <h2 class="text-xl font-semibold mb-2">{{ c['name'] }}</h2>
+<h2 class="text-2xl font-bold">
+              <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline" data-tooltip="Open the official website for this cottage in a new tab.">
+                {{ c['name'] }} - open cottage website
+              </a>
+            </h2>
         <p class="text-gray-600 text-sm mb-2">{{ c['location'] }}</p>
         <p class="text-lg font-bold text-green-600 mb-2">{{ c['price'] }}</p>
+        
+        <!-- Vote Count -->
+        <div class="flex items-center gap-2 mb-2 text-sm">
+          <span class="font-medium">Votes:</span>
+          <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded vote-count" data-cottage-id="{{ c['id'] }}">
+            {{ c['votes'] }}
+          </span>
+        </div>
         
         <!-- Rating Display -->
         <div class="flex items-center gap-2 mb-3 text-sm">
@@ -28,9 +40,9 @@
         {% if session.get('user_name') %}
         <div class="mb-3 rating-widget" data-cottage-id="{{ c['id'] }}">
           <label class="text-sm font-medium block mb-1">Your Rating:</label>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 flex-wrap">
             {% for i in range(11) %}
-            <button class="rating-btn w-8 h-8 rounded border {% if c['my_rating'] == i %}bg-blue-500 text-white border-blue-500{% else %}bg-gray-100 border-gray-300 hover:bg-gray-200{% endif %}"
+            <button class="rating-btn w-8 h-8 rounded border text-xs {% if c['my_rating'] == i %}bg-blue-500 text-white border-blue-500{% else %}bg-gray-100 border-gray-300 hover:bg-gray-200{% endif %}"
                     data-rating="{{ i }}"
                     data-tooltip="Rate {{ i }}/10">
               {{ i }}
@@ -45,14 +57,35 @@
         </div>
         {% endif %}
 
-        <div class="flex gap-2 mt-4">
+        <div class="grid grid-cols-2 gap-2 mt-4">
           <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}"
-             class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center px-3 py-2 rounded"
+             class="bg-blue-500 hover:bg-blue-600 text-white text-center px-3 py-2 rounded text-sm"
              data-tooltip="View details">
             Details
           </a>
+          
+          {% if session.get('user_name') %}
+          <button class="vote-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm"
+                  data-cottage-id="{{ c['id'] }}"
+                  data-tooltip="Vote for this cottage">
+            Vote
+          </button>
+          {% else %}
+          <a href="{{ url_for('join') }}"
+             class="bg-gray-300 text-gray-600 text-center px-3 py-2 rounded text-sm"
+             data-tooltip="Login to vote">
+            Vote
+          </a>
+          {% endif %}
+          
+          <a href="{{ url_for('reviews', cottage_id=c['id']) }}"
+             class="bg-purple-500 hover:bg-purple-600 text-white text-center px-3 py-2 rounded text-sm"
+             data-tooltip="Read reviews">
+            Reviews
+          </a>
+          
           <a href="{{ url_for('cottage_ratings', cottage_id=c['id']) }}"
-             class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-center px-3 py-2 rounded"
+             class="bg-yellow-500 hover:bg-yellow-600 text-white text-center px-3 py-2 rounded text-sm"
              data-tooltip="View all ratings">
             Ratings
           </a>
@@ -64,6 +97,50 @@
 </div>
 
 <script>
+// Handle voting
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.vote-btn');
+  if (!btn) return;
+  
+  const cottageId = btn.dataset.cottageId;
+  btn.disabled = true;
+  btn.classList.add('opacity-50', 'cursor-not-allowed');
+  
+  try {
+    const res = await fetch(`/vote/${cottageId}`, { method: 'POST' });
+    const data = await res.json();
+    
+    if (!res.ok) {
+      if (data.status === 'already_voted_elsewhere') {
+        alert(`You already voted for another cottage. Delete your existing vote from the Results page first.`);
+      } else if (data.status === 'already_voted') {
+        alert('You already voted for this cottage.');
+      } else {
+        alert(data.message || 'Failed to vote.');
+      }
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      return;
+    }
+    
+    // Update vote count display
+    const countEl = document.querySelector(`.vote-count[data-cottage-id="${cottageId}"]`);
+    if (countEl) {
+      countEl.textContent = data.votes;
+    }
+    
+    alert('Vote recorded!');
+    btn.textContent = 'Voted ✓';
+    btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+    btn.classList.add('bg-gray-400');
+    
+  } catch (err) {
+    alert('Network error while voting.');
+    btn.disabled = false;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+});
+
 // Handle rating submission
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('.rating-btn');

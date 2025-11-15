@@ -1,74 +1,183 @@
-{% extends 'base.html' %}
-
-{% block header %}
-  <h1>{% block title %}Reviews for {{ cottage.name }}{% endblock %}</h1>
-{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="cottage-reviews max-w-4xl mx-auto p-4">
-  {% if cottage.ai_review_summary %}
-    <div class="review-summary bg-white p-6 rounded-lg shadow-md mb-6">
-      <h2 class="text-2xl font-bold mb-4">AI-Generated Review Summary</h2>
-      {{ cottage.ai_review_summary|safe }}
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Reviews: {{ cottage['name'] }}</h1>
+    <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" 
+       class="text-blue-600 hover:text-blue-700" 
+       data-tooltip="Back to cottage details">&larr; Back to Details</a>
+  </div>
+
+  <!-- Cottage Summary -->
+  <div class="bg-white rounded shadow p-6 mb-6">
+    <div class="flex gap-4">
+      {% if cottage['image'] %}
+      <img src="{{ cottage['image'] }}" alt="{{ cottage['name'] }}" class="w-32 h-32 object-cover rounded">
+      {% endif %}
+      <div class="flex-1">
+        <h2 class="text-xl font-semibold mb-2">{{ cottage['name'] }}</h2>
+        <p class="text-gray-600 mb-1">{{ cottage['location'] }}</p>
+        <p class="text-green-600 font-bold mb-2">{{ cottage['price'] }}</p>
+        <div class="flex gap-4 text-sm">
+          <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">{{ cottage['votes'] }} votes</span>
+          <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">{{ stats['avg']|round(1) if stats['avg'] else 0 }}/10 avg ({{ stats['count'] }} ratings)</span>
+        </div>
+      </div>
     </div>
-  {% else %}
-    <p class="text-gray-600 mb-6">No AI-generated review summary available yet.</p>
-  {% endif %}
-  
-  {% if session.get('user_name') in admin_users %}
-    <div class="admin-controls mb-6">
-      <button onclick="generateReview({{ cottage.id }})" 
-              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded" data-tooltip="Generate a new AI review summary for this cottage. Only admins can use this.">
-        Generate New Review Summary
-      </button>
-      <p id="generateStatus" class="mt-2 text-sm"></p>
+  </div>
+
+  <!-- AI Review Summary (if available) -->
+  {% if cottage['ai_review_summary'] %}
+  <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-500 rounded p-6 mb-6">
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0">
+        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+          <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">AI Review Summary</span>
+        </h3>
+        <div class="text-gray-700 prose prose-sm max-w-none">
+          {{ cottage['ai_review_summary']|safe }}
+        </div>
+      </div>
     </div>
+  </div>
   {% endif %}
-  
-  <div class="actions">
-    <a href="{{ url_for('cottage_detail', cottage_id=cottage.id) }}" 
-  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tooltip="Return to the cottage details page.">
-      Back to Details
+
+  <!-- Rating Summary -->
+  {% if my_rating %}
+  <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <span class="font-medium">Your Rating:</span>
+        <span class="text-2xl font-bold text-blue-600 ml-2">{{ my_rating['rating'] }}/10</span>
+        <span class="text-sm text-gray-600 ml-2">({{ my_rating['rated_at'] }})</span>
+      </div>
+      <a href="{{ url_for('cottage_ratings', cottage_id=cottage['id']) }}" 
+         class="text-blue-600 hover:text-blue-700 text-sm"
+         data-tooltip="Manage your rating">
+        Manage Rating
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- User Reviews/Comments -->
+  <div class="bg-white rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4">
+      User Reviews & Comments 
+      <span class="text-sm text-gray-500 font-normal">({{ comments|length }})</span>
+    </h2>
+
+    {% if comments %}
+    <div class="space-y-4">
+      {% for comment in comments %}
+      <div class="border-b border-gray-200 pb-4 last:border-b-0">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <span class="font-medium text-gray-900">{{ comment['author'] }}</span>
+            <span class="text-xs text-gray-500 ml-2">{{ comment['created_at'] }}</span>
+          </div>
+          {% if session.get('user_name') == comment['author'] %}
+          <div class="flex gap-2">
+            <button onclick="editComment({{ comment['id'] }}, '{{ comment['text']|replace("'", "\\'") }}')"
+                    class="text-blue-600 hover:text-blue-700 text-sm"
+                    data-tooltip="Edit comment">
+              Edit
+            </button>
+            <form method="POST" action="{{ url_for('delete_comment', comment_id=comment['id']) }}" class="inline">
+              <button type="submit" 
+                      class="text-red-600 hover:text-red-700 text-sm"
+                      data-tooltip="Delete comment"
+                      onclick="return confirm('Delete this comment?')">
+                Delete
+              </button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        <p class="text-gray-700">{{ comment['text'] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-center py-8">No user reviews yet. Be the first to comment!</p>
+    {% endif %}
+
+    <!-- Add Comment Form -->
+    {% if session.get('user_name') %}
+    <div class="mt-6 pt-6 border-t border-gray-200">
+      <h3 class="text-lg font-medium mb-3">Add Your Review</h3>
+      <form method="POST" action="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}">
+        <textarea name="comment" 
+                  rows="4" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Share your thoughts about this cottage..."
+                  required></textarea>
+        <button type="submit" 
+                class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                data-tooltip="Post your comment">
+          Post Comment
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+      <a href="{{ url_for('join') }}" class="text-blue-600 hover:text-blue-700">
+        Login to leave a review
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Links -->
+  <div class="mt-6 flex gap-3 flex-wrap">
+    <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" 
+       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+       data-tooltip="View full details">
+      View Details
+    </a>
+    <a href="{{ url_for('cottage_ratings', cottage_id=cottage['id']) }}" 
+       class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+       data-tooltip="View ratings breakdown">
+      View Ratings
+    </a>
+    {% if cottage['url'] %}
+    <a href="{{ cottage['url'] }}" 
+       target="_blank"
+       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+       data-tooltip="Open booking page">
+      Book Now
+    </a>
+    {% endif %}
+    <a href="{{ url_for('cottages') }}" 
+       class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded"
+       data-tooltip="Back to cottage list">
+      Back to List
     </a>
   </div>
 </div>
 
 <script>
-function generateReview(cottageId) {
-  const button = event.target;
-  const statusEl = document.getElementById('generateStatus');
-  
-  // Disable button and show loading state
-  button.disabled = true;
-  button.classList.add('opacity-50');
-  statusEl.textContent = 'Generating review summary...';
-  
-  fetch(`/generate_review/${cottageId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      statusEl.textContent = `Error: ${data.error}`;
-      statusEl.classList.add('text-red-600');
-    } else {
-      statusEl.textContent = 'Review summary generated successfully! Refreshing...';
-      statusEl.classList.add('text-green-600');
-      setTimeout(() => window.location.reload(), 1500);
-    }
-  })
-  .catch(error => {
-    statusEl.textContent = `Error: ${error.message}`;
-    statusEl.classList.add('text-red-600');
-  })
-  .finally(() => {
-    // Re-enable button after response
-    button.disabled = false;
-    button.classList.remove('opacity-50');
-  });
+function editComment(commentId, currentText) {
+  const newText = prompt('Edit your comment:', currentText);
+  if (newText && newText !== currentText) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/comment/edit/${commentId}`;
+    
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'text';
+    input.value = newText;
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  }
 }
 </script>
 {% endblock %}

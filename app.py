@@ -51,13 +51,38 @@ def get_db():
 @app.route('/reviews/<int:cottage_id>')
 def reviews(cottage_id):
     db = get_db()
-    cottage = db.execute(
-        'SELECT * FROM cottages WHERE id = ?',
+    cottage = db.execute('SELECT * FROM cottages WHERE id = ?', (cottage_id,)).fetchone()
+    if cottage is None:
+        flash('Cottage not found')
+        return redirect(url_for('cottages'))
+    
+    # Get all comments/reviews
+    comments = db.execute(
+        "SELECT * FROM comments WHERE cottage_id = ? ORDER BY created_at DESC",
+        (cottage_id,)
+    ).fetchall()
+    
+    # Get rating statistics
+    stats = db.execute(
+        "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
         (cottage_id,)
     ).fetchone()
-    if cottage is None:
-        return redirect(url_for('cottages'))
-    return render_template('reviews.html', cottage=cottage)
+    
+    # Get current user's rating if logged in
+    my_rating = None
+    if session.get('user_name'):
+        my_rating = db.execute(
+            "SELECT rating, rated_at FROM ratings WHERE cottage_id = ? AND user_name = ?",
+            (cottage_id, session['user_name'])
+        ).fetchone()
+    
+    return render_template(
+        'reviews.html',
+        cottage=dict(cottage),
+        comments=[dict(c) for c in comments],
+        stats=dict(stats),
+        my_rating=dict(my_rating) if my_rating else None
+    )
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -119,7 +144,7 @@ def rate_cottage(cottage_id):
         if rating < 0 or rating > 10:
             return jsonify({'ok': False, 'message': 'Rating must be 0-10.'}), 400
     except ValueError:
-        return jsonify({'ok': False, 'message': 'Invalid rating value.'}), 400
+        return jsonify({'ok': False, 'message': 'Invalid rating value.'}), 400  # Fixed: added closing }
 
     db = get_db()
     

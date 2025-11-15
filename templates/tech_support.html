@@ -74,11 +74,11 @@ python app.py</code></pre>
           <ul class="list-disc ml-6 space-y-1 mt-2">
             <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">cottages</span>: name, location, price, beds, dogs_allowed, image, url, description, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, votes, submitted_by, ai_review_summary.</li>
             <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">votes</span>: id, cottage_id, user_name, voted_at (one active vote per user; denormalized count in cottages.votes).</li>
-            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">comments</span>: id, cottage_id, author, text, created_at.</li>
+            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">comments</span>: id, cottage_id, author, text, created_at (user reviews/comments on cottages).</li>
             <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ratings</span>: id, cottage_id, user_name, rating (0-10), rated_at. <strong>UNIQUE constraint</strong> on (cottage_id, user_name) – one rating per user per cottage.</li>
           </ul>
         </li>
-        <li><strong>Ratings table:</strong> Stores 0-10 ratings. Users can rate multiple cottages. Updates replace existing ratings.</li>
+        <li><strong>Foreign Keys:</strong> All child tables (votes, comments, ratings) use ON DELETE CASCADE to auto-cleanup when cottages are deleted.</li>
       </ul>
     </section>
 
@@ -87,7 +87,15 @@ python app.py</code></pre>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
         <li><strong>Join/Login:</strong> Group code authentication (default: "saywards").</li>
         <li><strong>Cottage Management:</strong> Add, edit (own), delete (own or admin), list, compare, and view details.</li>
-        <li><strong>Rating System (NEW):</strong>
+        <li><strong>Voting System:</strong>
+          <ul class="list-disc ml-6 mt-1">
+            <li>One vote per user (single choice)</li>
+            <li>Vote button on list page cards</li>
+            <li>Delete from Results page to change vote</li>
+            <li>Public voter lists on details pages</li>
+          </ul>
+        </li>
+        <li><strong>Rating System:</strong>
           <ul class="list-disc ml-6 mt-1">
             <li>Users rate cottages 0-10 (multiple cottages allowed)</li>
             <li>Click rating buttons on cottage cards to submit/update</li>
@@ -97,9 +105,16 @@ python app.py</code></pre>
             <li>Admins see all individual ratings on the ratings detail page</li>
           </ul>
         </li>
-        <li><strong>Voting:</strong> One vote per user (single choice). Delete from Results to change.</li>
-        <li><strong>Comments:</strong> Add, edit (own), delete (own or admin) on cottage details.</li>
+        <li><strong>Reviews & Comments:</strong>
+          <ul class="list-disc ml-6 mt-1">
+            <li>Dedicated reviews page per cottage (<span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/reviews/&lt;id&gt;</span>)</li>
+            <li>Add, edit (own), delete (own or admin) comments</li>
+            <li>Reviews page shows cottage summary, rating stats, and all comments</li>
+            <li>Comments also appear on main details page</li>
+          </ul>
+        </li>
         <li><strong>Results:</strong> Ranked list by votes with rating statistics displayed.</li>
+        <li><strong>Compare:</strong> Side-by-side table with features, votes, and rating stats.</li>
         <li><strong>Admin Controls:</strong>
           <ul class="list-disc ml-6 mt-1">
             <li>Manage votes (view/delete any vote)</li>
@@ -118,10 +133,11 @@ python app.py</code></pre>
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Security Notes</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
         <li>Set a strong <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_SECRET</span> in production to protect sessions.</li>
-        <li>Descriptions are sanitized with Bleach to prevent XSS.</li>
+        <li>Descriptions and comments are sanitized with Bleach to prevent XSS.</li>
         <li>Change the group code from "saywards" if privacy is required.</li>
         <li>Use HTTPS in production; ensure secure cookie flags.</li>
         <li>Rating system enforces one rating per user per cottage via database UNIQUE constraint.</li>
+        <li>Comment editing restricted to original author or admin.</li>
         <li>Admin checks use normalized (case-insensitive, trimmed) usernames.</li>
       </ul>
     </section>
@@ -133,12 +149,14 @@ python app.py</code></pre>
         <li>Create a WSGI entry file (e.g., cottage.wsgi) pointing to app.py.</li>
         <li>Configure Apache VirtualHost to use mod_wsgi and point to the WSGI file.</li>
         <li>Set environment variables (CC_SECRET, CC_ADMINS, CC_ALLOW_ADMIN_OVERRIDE, CC_ADMIN_USERS) in Apache config or .env file.</li>
-        <li>Ensure Apache user (e.g., www-data) can read the project directory and venv.</li>
+        <li>Ensure Apache user (e.g., www-data) can read the project directory and venv, and <strong>write to data.db and parent directory</strong>.</li>
+        <li>Set permissions:
+          <pre class="bg-gray-900 text-gray-100 p-3 rounded text-xs mt-2"><code>sudo chown -R www-data:www-data /path/to/app
+sudo chmod 664 /path/to/app/data.db
+sudo chmod 775 /path/to/app</code></pre>
+        </li>
         <li>Restart Apache: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo systemctl restart apache2</span></li>
       </ol>
-      <p class="text-sm text-gray-600 mt-2">
-        Sample WSGI file structure (activate venv Python before importing app).
-      </p>
     </section>
 
     <section id="ops">
@@ -170,20 +188,26 @@ python app.py</code></pre>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">No pyvenv.cfg file</summary>
+          <summary class="font-medium text-gray-900 cursor-pointer">Delete functionality not working (Raspberry Pi LAMP)</summary>
           <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Delete broken venv: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">Remove-Item -Recurse -Force venv</span></li>
-            <li>Recreate: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">py -3 -m venv venv</span> then activate and install.</li>
+            <li>Check ownership: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ls -la /var/www/html/Cottage</span></li>
+            <li>Set permissions:
+              <pre class="bg-gray-900 text-gray-100 p-2 rounded text-xs mt-1"><code>sudo chown -R www-data:www-data /var/www/html/Cottage
+sudo chmod 664 /var/www/html/Cottage/data.db
+sudo chmod 775 /var/www/html/Cottage</code></pre>
+            </li>
+            <li>Check Apache errors: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo tail -50 /var/log/apache2/error.log</span></li>
+            <li>Test as Apache user: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo -u www-data sqlite3 data.db "SELECT * FROM cottages LIMIT 1;"</span></li>
+            <li>Ensure foreign keys cascade properly (ON DELETE CASCADE in schema.sql)</li>
           </ul>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">Admin can't delete votes/view ratings</summary>
+          <summary class="font-medium text-gray-900 cursor-pointer">Admin can't delete votes/view ratings/delete comments</summary>
           <ul class="list-disc ml-6 text-gray-700 mt-2">
             <li>Set <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMINS</span> or <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMIN_USERS</span> with your username (case-insensitive).</li>
             <li>Ensure you're logged in with that exact username.</li>
-            <li>Endpoint: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">POST /vote/delete/&lt;id&gt;</span> returns JSON <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{ok: true}</span> on success.</li>
-            <li>Ratings admin view appears on <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/ratings/&lt;cottage_id&gt;</span></li>
+            <li>For comment/cottage deletion, also set <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ALLOW_ADMIN_OVERRIDE=true</span></li>
           </ul>
         </details>
 
@@ -198,13 +222,22 @@ python app.py</code></pre>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">Duplicate route error (View function mapping is overwriting...)</summary>
-          <p class="text-gray-700 mt-2">You have duplicate @app.route decorators. Search app.py for duplicate function names and remove duplicates. Each route+function should appear only once.</p>
+          <summary class="font-medium text-gray-900 cursor-pointer">Vote button not appearing on list page</summary>
+          <p class="text-gray-700 mt-2">You must be logged in to see vote buttons. If logged in and still not visible, check that list.html includes the vote button code and JavaScript handlers.</p>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">Template errors with sqlite3.Row and .get()</summary>
-          <p class="text-gray-700 mt-2">Convert rows to dicts in views (e.g., <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">cottages = [dict(r) for r in rows]</span>) or use bracket access in templates.</p>
+          <summary class="font-medium text-gray-900 cursor-pointer">Reviews page shows error or missing data</summary>
+          <ul class="list-disc ml-6 text-gray-700 mt-2">
+            <li>Ensure <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/reviews/&lt;cottage_id&gt;</span> route exists in app.py</li>
+            <li>Check that reviews.html template exists in templates/ folder</li>
+            <li>Verify comments table has data: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">SELECT * FROM comments;</span></li>
+          </ul>
+        </details>
+
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Duplicate route error</summary>
+          <p class="text-gray-700 mt-2">Search app.py for duplicate @app.route decorators with same paths. Each route+function should appear only once.</p>
         </details>
 
         <details class="bg-white shadow rounded p-4">
@@ -227,8 +260,9 @@ python app.py</code></pre>
         <tbody class="divide-y divide-gray-200">
           <tr><td class="px-4 py-2 font-mono">/join</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Login/Join via group code</td></tr>
           <tr><td class="px-4 py-2 font-mono">/logout</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Clear session and logout</td></tr>
-          <tr><td class="px-4 py-2 font-mono">/cottages</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">List cottages with ratings</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/cottages</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">List cottages with ratings/votes</td></tr>
           <tr><td class="px-4 py-2 font-mono">/cottage/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Details/comments/voters</td></tr>
+          <tr><td class="px-4 py-2 font-mono bg-green-50">/reviews/&lt;id&gt;</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Dedicated reviews page</td></tr>
           <tr><td class="px-4 py-2 font-mono">/add</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Add cottage</td></tr>
           <tr><td class="px-4 py-2 font-mono">/edit/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Edit cottage (owner only)</td></tr>
           <tr><td class="px-4 py-2 font-mono">/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete cottage (owner/admin)</td></tr>
@@ -237,6 +271,8 @@ python app.py</code></pre>
           <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rate/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Submit/update 0-10 rating</td></tr>
           <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rating/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete user's rating</td></tr>
           <tr><td class="px-4 py-2 font-mono bg-yellow-50">/ratings/&lt;id&gt;</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">View ratings (user/admin)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/comment/edit/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Edit comment (owner)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/comment/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete comment (owner/admin)</td></tr>
           <tr><td class="px-4 py-2 font-mono">/results</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Rankings with vote/rating stats</td></tr>
           <tr><td class="px-4 py-2 font-mono">/compare</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Side-by-side compare</td></tr>
           <tr><td class="px-4 py-2 font-mono">/presentation</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Slides viewer</td></tr>
@@ -246,11 +282,11 @@ python app.py</code></pre>
           <tr><td class="px-4 py-2 font-mono">/init</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Initialize/reset DB (⚠️ data loss)</td></tr>
         </tbody>
       </table>
-      <p class="text-sm text-gray-600 mt-2">Highlighted rows indicate new rating system endpoints.</p>
+      <p class="text-sm text-gray-600 mt-2">Green highlight = reviews feature. Yellow highlight = rating system endpoints.</p>
     </section>
 
     <section id="api-reference">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rating API Reference</h2>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rating & Review API Reference</h2>
       
       <div class="bg-white shadow rounded p-4 mb-4">
         <h3 class="font-semibold mb-2">POST /rate/&lt;cottage_id&gt;</h3>
@@ -267,10 +303,16 @@ python app.py</code></pre>
         <p class="text-sm"><strong>Errors:</strong> 401 (not logged in), 404 (no rating found)</p>
       </div>
 
-      <div class="bg-white shadow rounded p-4">
+      <div class="bg-white shadow rounded p-4 mb-4">
         <h3 class="font-semibold mb-2">GET /ratings/&lt;cottage_id&gt;</h3>
         <p class="text-sm text-gray-700 mb-2">View rating statistics and details for a cottage.</p>
         <p class="text-sm"><strong>Returns:</strong> HTML page with aggregate stats, user's own rating, and (for admins) all individual ratings.</p>
+      </div>
+
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="font-semibold mb-2">GET /reviews/&lt;cottage_id&gt;</h3>
+        <p class="text-sm text-gray-700 mb-2">View all reviews/comments for a cottage with rating context.</p>
+        <p class="text-sm"><strong>Returns:</strong> HTML page with cottage summary, rating stats, user's rating, and all comments with edit/delete controls.</p>
       </div>
     </section>
 
