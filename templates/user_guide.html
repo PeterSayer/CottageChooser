@@ -1,279 +1,237 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8">
+<div class="max-w-4xl mx-auto px-4 py-8">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-3xl font-semibold text-gray-900">Cottage Chooser – Technical Support</h1>
+    <h1 class="text-3xl font-semibold text-gray-900">Cottage Chooser – User Guide</h1>
     <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Back to the cottage list">
-      &larr; Backrl_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Back to the cottage list">
-    </a>arr; Back to Cottages
+      &larr; Back to Cottages
+    </a>
   </div>
-  </div>
+
   <p class="text-gray-700 mb-6">
-    This document helps operators and contributors set up, configure, deploy, and troubleshoot the Cottage Chooser application.
-  </p>lcome to Cottage Chooser. This guide explains how to browse cottages, vote, rate, add entries, write reviews, and follow the rules.
+    Welcome to Cottage Chooser. This guide explains how to browse cottages, vote, rate, add entries, write reviews, and follow the rules.
     Turn on Help Mode to see inline tips on buttons and links.
+  </p>
+
   <div class="space-y-10">
 
-    <section id="requirements">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">System Requirements</h2>
-      <ul class="list-disc ml-6 text-gray-700 space-y-1">
-        <li>Python 3.9–3.12</li>emibold text-gray-900 mb-3">Quick Start</h2>
-        <li>pip and venv</li> ml-6 space-y-2 text-gray-700">
-        <li>SQLite (bundled with Python)</li>the "Login" link in the top-right to join the group with the group code.</li>
-        <li>Windows, Linux, or macOS</li> "List Cottages" to see all entries, or "Compare" to view side by side.</li>
-      </ul>><strong>Details:</strong> Click "Details" on any cottage to view photos, features, and full information.</li>
-    </section>trong>Rate:</strong> Use the 0-10 rating buttons on each cottage card to rate properties. You can rate multiple cottages.</li>
+    <section id="quick-start">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Quick Start</h2>
+      <ol class="list-decimal ml-6 space-y-2 text-gray-700">
+        <li><strong>Join/Login:</strong> Use the "Login" link in the top-right to join the group with the group code.</li>
+        <li><strong>Browse:</strong> Open "List Cottages" to see all entries, or "Compare" to view side by side.</li>
+        <li><strong>Details:</strong> Click "Details" on any cottage to view photos, features, and full information.</li>
+        <li><strong>Rate:</strong> Use the 0-10 rating buttons on each cottage card to rate properties. You can rate multiple cottages.</li>
         <li><strong>Vote:</strong> Click "Vote" on your favorite cottage from the list page. You can only have one vote at a time.</li>
-    <section id="dependencies">rong> Click "Reviews" to read and write comments about each cottage.</li>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Dependencies</h2> and ratings. You can delete your vote there if you want to change it.</li>
-      <pre class="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto"><code>flask>=2.2,<3tive elements.</li>
-bleach>=6.1
-requests>=2.31
-# openai removed (manual summaries only)</code></pre>
-    </section>d="rating">
+        <li><strong>Review:</strong> Click "Reviews" to read and write comments about each cottage.</li>
+        <li><strong>Results:</strong> Open "Results" to see rankings by votes and ratings. You can delete your vote there if you want to change it.</li>
+        <li><strong>Help Mode:</strong> Click the floating "Help" button to show tooltips on interactive elements.</li>
+      </ol>
+    </section>
+
+    <section id="rating">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rating System (0-10)</h2>
-    <section id="env-vars">ml-6 space-y-2 text-gray-700">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Configuration (Environment Variables)</h2>es. Voting (single choice) indicates your top preference.</li>
-      <ul class="list-disc ml-6 text-gray-700 space-y-2">list, click any number button (0-10) to submit your rating for that cottage.</li>
-        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_SECRET</span>: Flask secret key. Defaults to "dev-secret-key". <strong>Set a strong value in production.</strong></li>
-        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ALLOW_ADMIN_OVERRIDE</span>: Enable admin override for deletes/edits (true/false/1/0/yes/no).</li>
-        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMIN_USERS</span>: Comma-separated admin usernames (used with override).</li>
-        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMINS</span>: Comma-separated admin usernames (used for vote/rating admin controls).</li>
-      </ul> <li>Your own rating and when you submitted it</li>
-      <p class="text-sm text-gray-600 mt-2">ratings from all users</li>
-        Note: The app unifies admin checks using both CC_ADMIN_USERS and CC_ADMINS. Either can grant admin rights. 
-        Usernames are case-insensitive and whitespace-trimmed.
-      </p>i><strong>Results Display:</strong> The Results, List, and Compare pages show average rating, rating count, and total score for each cottage.</li>
-      <p class="text-sm text-gray-600 mt-2">rty's features, location, and value. Don't artificially inflate or deflate ratings.</li>
-        Example (PowerShell): <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">$env:CC_ADMINS = "alice,bob"</span>
-      </p>ion>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li><strong>Rating vs Voting:</strong> Ratings (0-10 scale) allow you to score multiple cottages. Voting (single choice) indicates your top preference.</li>
+        <li><strong>How to Rate:</strong> On the cottage list, click any number button (0-10) to submit your rating for that cottage.</li>
+        <li><strong>Change Rating:</strong> Click a different number to update your rating, or click "Clear my rating" to remove it entirely.</li>
+        <li><strong>View Ratings:</strong> Click the "Ratings" button on any cottage to see:
+          <ul class="list-disc ml-6 mt-1">
+            <li>Overall statistics (count, average, total score)</li>
+            <li>Your own rating and when you submitted it</li>
+            <li>(Admin only) All individual ratings from all users</li>
+          </ul>
+        </li>
+        <li><strong>Results Display:</strong> The Results, List, and Compare pages show average rating, rating count, and total score for each cottage.</li>
+        <li>Be fair: rate based on the property's features, location, and value. Don't artificially inflate or deflate ratings.</li>
+      </ul>
     </section>
+
     <section id="voting">
-    <section id="setup">l font-semibold text-gray-900 mb-3">Voting</h2>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Local Setup (Windows, PowerShell)</h2>
-      <pre class="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto"><code>cd C:\Users\Peter\Downloads\CottageChooser_Fulle again.</li>
-py -3 -m venv venvg>Vote from List:</strong> Click the green "Vote" button on any cottage card in the list view.</li>
-.\venv\Scripts\Activate.ps1ged in (joined) to vote.</li>
-python -m pip install --upgrade pip setuptools wheele resolved by a follow‑up vote or admin decision.</li>
-python -m pip install -r requirements.txts, and don't vote on behalf of others.</li>
-python app.py</code></pre>ic: other users can see who voted for each cottage on the details page.</li>
-      <p class="text-sm text-gray-600 mt-2">
-        If venv activation is blocked, run once: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</span>
-      </p>
-      <p class="text-sm text-gray-600 mt-2">
-        The app will be available at <a href="http://localhost:5000" class="text-blue-600 hover:underline">http://localhost:5000</a>
-      </p>class="list-disc ml-6 space-y-2 text-gray-700">
-    </section>trong>Access Reviews:</strong> Click the "Reviews" button on any cottage card to see all comments for that property.</li>
-        <li><strong>Write a Review:</strong> On the reviews page, use the text area at the bottom to add your thoughts about the cottage.</li>
-    <section id="database">ntext:</strong> The reviews page shows:
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Database</h2>
-      <ul class="list-disc ml-6 text-gray-700 space-y-2">/li>
-        <li>SQLite file: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span> (auto-created in the app folder).</li>
-        <li>Initialize using <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/init</span> route (loads schema.sql).</li>
-        <li><strong>Key tables:</strong>onological order</li>
-          <ul class="list-disc ml-6 space-y-1 mt-2">
-            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">cottages</span>: name, location, price, beds, dogs_allowed, image, url, description, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, votes, submitted_by, ai_review_summary.</li>
-            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">votes</span>: id, cottage_id, user_name, voted_at (one active vote per user; denormalized count in cottages.votes).</li>
-            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">comments</span>: id, cottage_id, author, text, created_at (user reviews/comments on cottages).</li>
-            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ratings</span>: id, cottage_id, user_name, rating (0-10), rated_at. <strong>UNIQUE constraint</strong> on (cottage_id, user_name) – one rating per user per cottage.</li>
-          </ul>rong>Also on Details Page:</strong> Comments are also visible on the main cottage details page alongside other information.</li>
-        </li>
-        <li><strong>Foreign Keys:</strong> All child tables (votes, comments, ratings) use ON DELETE CASCADE to auto-cleanup when cottages are deleted.</li>
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Voting</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li><strong>One vote per user</strong> at a time. To change your choice, delete your existing vote on the Results page and vote again.</li>
+        <li><strong>Vote from List:</strong> Click the green "Vote" button on any cottage card in the list view.</li>
+        <li>You must be logged in (joined) to vote.</li>
+        <li>Results update automatically. Ties may be resolved by a follow‑up vote or admin decision.</li>
+        <li>Be fair: no duplicate accounts, and don't vote on behalf of others.</li>
+        <li>Votes are public: other users can see who voted for each cottage on the details page.</li>
       </ul>
-    </section>d="add-cottage">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Adding and Editing Cottages</h2>
-    <section id="features">ml-6 space-y-2 text-gray-700">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Application Features</h2>eds, features, and a booking link.</li>
-      <ul class="list-disc ml-6 text-gray-700 space-y-2">e URL. Large images are fine; they'll be scaled automatically.</li>
-        <li><strong>Join/Login:</strong> Group code authentication (default: "saywards").</li>
-        <li><strong>Cottage Management:</strong> Add, edit (own), delete (own or admin), list, compare, and view details.</li>
-        <li><strong>Voting System:</strong>
-          <ul class="list-disc ml-6 mt-1">
-            <li>One vote per user (single choice)</li>
-            <li>Vote button on list page cards</li>
-            <li>Delete from Results page to change vote</li>
-            <li>Public voter lists on details pages</li>
-          </ul>
-        </li>
-        <li><strong>Rating System:</strong>
-          <ul class="list-disc ml-6 mt-1">
-            <li>Users rate cottages 0-10 (multiple cottages allowed)</li>em concise and relevant.</li>
-            <li>Click rating buttons on cottage cards to submit/update</li> page.</li>
-            <li>Delete ratings individually via "Clear my rating" or ratings detail page</li>ove entries that break rules.</li>
-            <li>View aggregate stats: count, average, total score</li>ng> Field available for manual entry (optional). Admins can add a summary to help users.</li>
-            <li>Regular users see only their own ratings + aggregates</li>
-            <li>Admins see all individual ratings on the ratings detail page</li>
-          </ul>
-        </li>
-        <li><strong>Reviews & Comments:</strong>tage Details Page</h2>
-          <ul class="list-disc ml-6 mt-1">="list-disc ml-6 space-y-2 text-gray-700">
-            <li>Dedicated reviews page per cottage (<span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/reviews/&lt;id&gt;</span>)</li>hows comprehensive cottage overview with all features and amenities.</li>
-            <li>Add, edit (own), delete (own or admin) comments</li>
-            <li>Reviews page shows cottage summary, rating stats, and all comments</li>
-            <li>Comments also appear on main details page</li>
-          </ul>>Edit/Delete buttons appear for cottage owners and admins.</li>
-        </li>
-        <li><strong>Results:</strong> Ranked list by votes with rating statistics displayed.</li>    </section>
-        <li><strong>Compare:</strong> Side-by-side table with features, votes, and rating stats.</li>
-        <li><strong>Admin Controls:</strong>
-          <ul class="list-disc ml-6 mt-1">3">Results Page</h2>
-            <li>Manage votes (view/delete any vote)</li>
-            <li>View all individual ratings per cottage</li>li>
-            <li>Delete any comment (with override enabled)</li>row of the cottage you voted for (when logged in).</li>
-            <li>Delete any cottage (with override enabled)</li>
-          </ul>
-        </li>
-        <li><strong>Presentation Mode:</strong> Slideshow viewer for PNG/JPG in static/slides/.</li> <li>Number of ratings</li>
-        <li><strong>Help Mode:</strong> Floating toggle; tooltips appear below elements.</li>i>Total rating score</li>
-        <li><strong>HTML Sanitization:</strong> Descriptions cleaned with Bleach (allowed tags: p, br, strong, em, u, ol, ul, li, h1-h4, blockquote).</li>          </ul>
-      </ul>
-    </section>iew all individual ratings to resolve mistakes or rule violations.</li>
-
-    <section id="security">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Security Notes</h2>
-      <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li>Set a strong <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_SECRET</span> in production to protect sessions.</li>
-        <li>Descriptions and comments are sanitized with Bleach to prevent XSS.</li>
-        <li>Change the group code from "saywards" if privacy is required.</li>
-        <li>Use HTTPS in production; ensure secure cookie flags.</li>
-        <li>Rating system enforces one rating per user per cottage via database UNIQUE constraint.</li>
-        <li>Comment editing restricted to original author or admin.</li>
-        <li>Admin checks use normalized (case-insensitive, trimmed) usernames.</li>on id="compare">
-      </ul>s="text-2xl font-semibold text-gray-900 mb-3">Compare Cottages</h2>
-    </section>      <p class="text-gray-700">
-page displays multiple cottages side-by-side in a table format to easily compare:
-    <section id="deployment">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Deployment (Linux + Apache mod_wsgi)</h2>
-      <ol class="list-decimal ml-6 text-gray-700 space-y-2">
-        <li>Create a venv in the project directory and install requirements.</li>
-        <li>Create a WSGI entry file (e.g., cottage.wsgi) pointing to app.py.</li>
-        <li>Configure Apache VirtualHost to use mod_wsgi and point to the WSGI file.</li>
-        <li>Set environment variables (CC_SECRET, CC_ADMINS, CC_ALLOW_ADMIN_OVERRIDE, CC_ADMIN_USERS) in Apache config or .env file.</li>
-        <li>Ensure Apache user (e.g., www-data) can read the project directory and venv, and <strong>write to data.db and parent directory</strong>.</li>
-        <li>Set permissions:
-          <pre class="bg-gray-900 text-gray-100 p-3 rounded text-xs mt-2"><code>sudo chown -R www-data:www-data /path/to/app
-sudo chmod 664 /path/to/app/data.db="text-2xl font-semibold text-gray-900 mb-3">Rules of Use</h2>
-sudo chmod 775 /path/to/app</code></pre>ss="list-disc ml-6 space-y-2 text-gray-700">
-        </li>><strong>Honesty:</strong> One account per person. One active vote at a time. Rate fairly based on actual merit.</li>
-        <li>Restart Apache: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo systemctl restart apache2</span></li>trong>Respect:</strong> Keep comments and reviews civil. No harassment, hate speech, or inappropriate content.</li>
-      </ol>        <li><strong>Relevance:</strong> Only add cottages that meet the group's criteria (budget, location, amenities).</li>
-    </section>ong> Use correct prices, locations, and features. Link to reputable booking sites.</li>
- in reviews or comments.</li>
-    <section id="ops">ng:</strong> Don't manipulate ratings by creating multiple accounts or coordinating with others.</li>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Operations</h2>cus on helpful information. Avoid offensive language or personal attacks.</li>
-      <ul class="list-disc ml-6 text-gray-700 space-y-2">.</li>
-        <li><strong>Backup:</strong> Stop the app, copy <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span> and <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/</span>, <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">templates/</span>.</li>
-        <li><strong>Restore:</strong> Replace <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span>, restart the app.</li>
-        <li><strong>Slides:</strong> Add images to <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/slides/</span>; optional <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/presentation.pptx</span>.</li>
-        <li><strong>Database Migration:</strong> If schema changes, either:
-          <ul class="list-disc ml-6 mt-1">="text-2xl font-semibold text-gray-900 mb-3">FAQ & Troubleshooting</h2>
-            <li>Visit /init (drops and recreates all tables – <strong>data loss!</strong>)</li>space-y-4">
-            <li>Manually run ALTER TABLE commands in SQLite shell</li>        <details class="bg-white shadow rounded p-4">
-            <li>Use a migration tool like Alembic (not currently integrated)</li>ursor-pointer">What's the difference between rating, voting, and reviewing?</summary>
-          </ul>
-        </li>le cottages numerically to indicate quality/preference.<br>
-      </ul>.<br>
     </section>
 
-    <section id="troubleshooting">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Troubleshooting</h2>        
+    <section id="reviews">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Reviews & Comments</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li><strong>Access Reviews:</strong> Click the "Reviews" button on any cottage card to see all comments for that property.</li>
+        <li><strong>Write a Review:</strong> On the reviews page, use the text area at the bottom to add your thoughts about the cottage.</li>
+        <li><strong>View Context:</strong> The reviews page shows:
+          <ul class="list-disc ml-6 mt-1">
+            <li>Cottage summary (image, location, price)</li>
+            <li>Vote count and rating statistics</li>
+            <li>Your personal rating (if you've rated it)</li>
+            <li>All user comments in chronological order</li>
+          </ul>
+        </li>
+        <li><strong>Edit/Delete:</strong> You can edit or delete your own comments. Click "Edit" to modify or "Delete" to remove.</li>
+        <li><strong>Guidelines:</strong> Be respectful and constructive. No spam, advertising, or personal data.</li>
+        <li>Admins can delete any comment if it violates rules.</li>
+        <li><strong>Also on Details Page:</strong> Comments are also visible on the main cottage details page alongside other information.</li>
+      </ul>
+    </section>
+
+    <section id="add-cottage">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Adding and Editing Cottages</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>Use "Add Cottage" to submit a new entry. Include name, location, price, beds, features, and a booking link.</li>
+        <li><strong>Images:</strong> Provide a valid image URL. Large images are fine; they'll be scaled automatically.</li>
+        <li><strong>Features:</strong> Mark amenities accurately:
+          <ul class="list-disc ml-6 mt-1">
+            <li>Dogs allowed</li>
+            <li>Hot tub</li>
+            <li>Secure garden</li>
+            <li>EV charging</li>
+            <li>Parking</li>
+            <li>Log burner</li>
+            <li>High chair</li>
+            <li>Cot</li>
+          </ul>
+        </li>
+        <li><strong>Descriptions:</strong> Support basic HTML formatting (paragraphs, bold, lists). Keep them concise and relevant.</li>
+        <li><strong>Editing:</strong> You can edit cottages you submitted. Click "Edit" on the details page.</li>
+        <li><strong>Deleting:</strong> You can delete cottages you submitted. Admins may also remove entries that break rules.</li>
+        <li><strong>AI Review Summary:</strong> Field available for manual entry (optional). Admins can add a summary to help users.</li>
+      </ul>
+    </section>
+
+    <section id="details-page">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Cottage Details Page</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>Shows comprehensive cottage overview with all features and amenities.</li>
+        <li>Displays voter list (who voted for this cottage).</li>
+        <li>Shows user comments and reviews inline.</li>
+        <li>Links to dedicated Reviews page and Ratings page for more detail.</li>
+        <li>Edit/Delete buttons appear for cottage owners and admins.</li>
+      </ul>
+    </section>
+
+    <section id="results">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Results Page</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>See current rankings by vote count and rating statistics.</li>
+        <li><strong>Vote Management:</strong> "Delete my vote" appears on the row of the cottage you voted for (when logged in).</li>
+        <li><strong>Rating Display:</strong> Each cottage shows:
+          <ul class="list-disc ml-6 mt-1">
+            <li>Average rating (0-10 scale)</li>
+            <li>Number of ratings</li>
+            <li>Total rating score</li>
+          </ul>
+        </li>
+        <li><strong>Admin Controls:</strong> Admins can manage votes (view and delete any vote) and view all individual ratings to resolve mistakes or rule violations.</li>
+      </ul>
+    </section>
+
+    <section id="presentation">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Presentation</h2>
+      <p class="text-gray-700">
+        Use "Presentation" to step through the shortlisted cottages during a meeting. You can download slides if enabled.
+      </p>
+    </section>
+
+    <section id="compare">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Compare Cottages</h2>
+      <p class="text-gray-700">
+        The "Compare" page displays multiple cottages side-by-side in a table format to easily compare:
+      </p>
+      <ul class="list-disc ml-6 space-y-1 text-gray-700">
+        <li>Features and amenities</li>
+        <li>Prices and bedrooms</li>
+        <li>Vote counts</li>
+        <li>Rating statistics (average, count, total)</li>
+      </ul>
+    </section>
+
+    <section id="rules">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rules of Use</h2>
+      <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li><strong>Honesty:</strong> One account per person. One active vote at a time. Rate fairly based on actual merit.</li>
+        <li><strong>Respect:</strong> Keep comments and reviews civil. No harassment, hate speech, or inappropriate content.</li>
+        <li><strong>Relevance:</strong> Only add cottages that meet the group's criteria (budget, location, amenities).</li>
+        <li><strong>Accuracy:</strong> Use correct prices, locations, and features. Link to reputable booking sites.</li>
+        <li><strong>Privacy:</strong> Do not post sensitive personal information in reviews or comments.</li>
+        <li><strong>Fair Rating:</strong> Don't manipulate ratings by creating multiple accounts or coordinating with others.</li>
+        <li><strong>Constructive Reviews:</strong> Focus on helpful information. Avoid offensive language or personal attacks.</li>
+        <li><strong>Moderation:</strong> Admins may edit/remove content, votes, ratings, or reviews that break these rules.</li>
+      </ul>
+    </section>
+
+    <section id="faq">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">FAQ & Troubleshooting</h2>
       <div class="space-y-4">
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">ModuleNotFoundError: No module named 'flask'</summary>
-          <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Activate venv: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">.\venv\Scripts\Activate.ps1</span></li>nt vote from the Results page first, then vote again.
-            <li>Install deps: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">python -m pip install -r requirements.txt</span></li>
-            <li>Verify interpreter: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">python -c "import sys; print(sys.executable)"</span></li>
-          </ul>
-        </details>lass="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">What's the difference between rating, voting, and reviewing?</summary>
+          <p class="mt-2 text-gray-700">
+            <strong>Rating (0-10):</strong> Score multiple cottages numerically to indicate quality/preference.<br>
+            <strong>Voting (single choice):</strong> Your final pick for the group's chosen cottage. You can only vote for one at a time.<br>
+            <strong>Reviewing (text):</strong> Write comments and detailed thoughts about cottages to help others decide.
+          </p>
+        </details>
+        
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Can I change my rating or vote?</summary>
+          <p class="mt-2 text-gray-700">
+            <strong>Rating:</strong> Yes! Click a different number (0-10) to update, or "Clear my rating" to remove it.<br>
+            <strong>Vote:</strong> Yes, but you must delete your current vote from the Results page first, then vote again.
+          </p>
+        </details>
+        
+        <details class="bg-white shadow rounded p-4">
           <summary class="font-medium text-gray-900 cursor-pointer">How do I write a review?</summary>
-        <details class="bg-white shadow rounded p-4">views" button on any cottage card, then use the text area at the bottom of the reviews page to add your comment.</p>
-          <summary class="font-medium text-gray-900 cursor-pointer">Delete functionality not working (Raspberry Pi LAMP)</summary>
-          <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Check ownership: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ls -la /var/www/html/Cottage</span></li>
-            <li>Set permissions:er">Can I edit or delete my review?</summary>
-              <pre class="bg-gray-900 text-gray-100 p-2 rounded text-xs mt-1"><code>sudo chown -R www-data:www-data /var/www/html/Cottage or Delete to remove.</p>
-sudo chmod 664 /var/www/html/Cottage/data.db
-sudo chmod 775 /var/www/html/Cottage</code></pre>
-            </li>lass="bg-white shadow rounded p-4">
-            <li>Check Apache errors: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo tail -50 /var/log/apache2/error.log</span></li>          <summary class="font-medium text-gray-900 cursor-pointer">How many cottages can I rate?</summary>
-            <li>Test as Apache user: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo -u www-data sqlite3 data.db "SELECT * FROM cottages LIMIT 1;"</span></li>as many cottages as you want (0-10 each), but you can only vote for one cottage at a time.</p>
-            <li>Ensure foreign keys cascade properly (ON DELETE CASCADE in schema.sql)</li>
-          </ul>
-        </details>lass="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">I can't vote.</summary>
-        <details class="bg-white shadow rounded p-4">'re logged in (joined). If you already voted, delete your current vote on the Results page first.</p>
-          <summary class="font-medium text-gray-900 cursor-pointer">Admin can't delete votes/view ratings/delete comments</summary>
-          <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Set <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMINS</span> or <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMIN_USERS</span> with your username (case-insensitive).</li>lass="bg-white shadow rounded p-4">
-            <li>Ensure you're logged in with that exact username.</li>          <summary class="font-medium text-gray-900 cursor-pointer">Where is the vote button?</summary>
-            <li>For comment/cottage deletion, also set <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ALLOW_ADMIN_OVERRIDE=true</span></li>te" button appears on each cottage card in the List view. You must be logged in to see it.</p>
-          </ul>
-        </details>
-lass="bg-white shadow rounded p-4">
-        <details class="bg-white shadow rounded p-4">ummary class="font-medium text-gray-900 cursor-pointer">Can I see who rated each cottage?</summary>
-          <summary class="font-medium text-gray-900 cursor-pointer">Rating not saving/updating</summary>lass="mt-2 text-gray-700">Regular users can only see their own ratings and overall statistics. Admin users can view all individual ratings on the Ratings detail page.</p>
-          <ul class="list-disc ml-6 text-gray-700 mt-2">        </details>
-            <li>Ensure you're logged in (ratings require authentication)</li>
-            <li>Check browser console for JavaScript errors</li>
-            <li>Verify <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ratings</span> table exists (visit /init if needed)</li>n't showing.</summary>
-            <li>Check SQLite constraint: UNIQUE(cottage_id, user_name)</li>-700">Click the floating "Help" button to enable Help Mode, then hover links and buttons.</p>
-          </ul>ils>
-        </details>
-
-        <details class="bg-white shadow rounded p-4">ointer">The site looks unstyled.</summary>
-          <summary class="font-medium text-gray-900 cursor-pointer">Vote button not appearing on list page</summary>ass="mt-2 text-gray-700">Do a hard refresh (Ctrl+F5). If it persists, try another browser or contact an admin.</p>
-          <p class="text-gray-700 mt-2">You must be logged in to see vote buttons. If logged in and still not visible, check that list.html includes the vote button code and JavaScript handlers.</p>s>
+          <p class="mt-2 text-gray-700">Click the "Reviews" button on any cottage card, then use the text area at the bottom of the reviews page to add your comment.</p>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">Reviews page shows error or missing data</summary>
-          <ul class="list-disc ml-6 text-gray-700 mt-2">ages</a>
-            <li>Ensure <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/reviews/&lt;cottage_id&gt;</span> route exists in app.py</li>results page">View Results</a>
-            <li>Check that reviews.html template exists in templates/ folder</li>Support</a>
-            <li>Verify comments table has data: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">SELECT * FROM comments;</span></li>
-          </ul>
+          <summary class="font-medium text-gray-900 cursor-pointer">Can I edit or delete my review?</summary>
+          <p class="mt-2 text-gray-700">Yes! Your comments show "Edit" and "Delete" buttons when you're logged in. Click Edit to modify or Delete to remove.</p>
         </details>
-        <details class="bg-white shadow rounded p-4">          <summary class="font-medium text-gray-900 cursor-pointer">Duplicate route error</summary>          <p class="text-gray-700 mt-2">Search app.py for duplicate @app.route decorators with same paths. Each route+function should appear only once.</p>        </details>        <details class="bg-white shadow rounded p-4">          <summary class="font-medium text-gray-900 cursor-pointer">Tooltips not visible</summary>          <p class="text-gray-700 mt-2">Toggle Help mode using the floating "Help" button; bubbles appear below elements on hover.</p>        </details>      </div>    </section>    <section id="endpoints">      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Key Endpoints</h2>      <table class="min-w-full bg-white shadow rounded overflow-hidden text-sm">        <thead class="bg-gray-50">          <tr>            <th class="px-4 py-2 text-left">Endpoint</th>            <th class="px-4 py-2 text-left">Method</th>            <th class="px-4 py-2 text-left">Description</th>          </tr>        </thead>        <tbody class="divide-y divide-gray-200">          <tr><td class="px-4 py-2 font-mono">/join</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Login/Join via group code</td></tr>          <tr><td class="px-4 py-2 font-mono">/logout</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Clear session and logout</td></tr>          <tr><td class="px-4 py-2 font-mono">/cottages</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">List cottages with ratings/votes</td></tr>          <tr><td class="px-4 py-2 font-mono">/cottage/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Details/comments/voters</td></tr>          <tr><td class="px-4 py-2 font-mono bg-green-50">/reviews/&lt;id&gt;</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Dedicated reviews page</td></tr>          <tr><td class="px-4 py-2 font-mono">/add</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Add cottage</td></tr>          <tr><td class="px-4 py-2 font-mono">/edit/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Edit cottage (owner only)</td></tr>          <tr><td class="px-4 py-2 font-mono">/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete cottage (owner/admin)</td></tr>          <tr><td class="px-4 py-2 font-mono">/vote/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Vote for cottage (one at a time)</td></tr>          <tr><td class="px-4 py-2 font-mono">/vote/delete/&lt;vote_id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete vote (user/admin)</td></tr>          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rate/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Submit/update 0-10 rating</td></tr>          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rating/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete user's rating</td></tr>          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/ratings/&lt;id&gt;</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">View ratings (user/admin)</td></tr>          <tr><td class="px-4 py-2 font-mono">/comment/edit/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Edit comment (owner)</td></tr>          <tr><td class="px-4 py-2 font-mono">/comment/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete comment (owner/admin)</td></tr>          <tr><td class="px-4 py-2 font-mono">/results</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Rankings with vote/rating stats</td></tr>          <tr><td class="px-4 py-2 font-mono">/compare</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Side-by-side compare</td></tr>          <tr><td class="px-4 py-2 font-mono">/presentation</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Slides viewer</td></tr>          <tr><td class="px-4 py-2 font-mono">/results_data</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">JSON snapshot for dashboards</td></tr>
-          <tr><td class="px-4 py-2 font-mono">/guide</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">User guide</td></tr>
-          <tr><td class="px-4 py-2 font-mono">/support</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Technical documentation</td></tr>
-          <tr><td class="px-4 py-2 font-mono">/init</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Initialize/reset DB (⚠️ data loss)</td></tr>
-        </tbody>
-      </table>
-      <p class="text-sm text-gray-600 mt-2">Green highlight = reviews feature. Yellow highlight = rating system endpoints.</p>
-    </section>
 
-    <section id="api-reference">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rating & Review API Reference</h2>
-      
-      <div class="bg-white shadow rounded p-4 mb-4">
-        <h3 class="font-semibold mb-2">POST /rate/&lt;cottage_id&gt;</h3>
-        <p class="text-sm text-gray-700 mb-2">Submit or update a rating for a cottage.</p>
-        <p class="text-sm"><strong>Body:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">rating=0-10</span></p>
-        <p class="text-sm"><strong>Response:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{"ok": true, "rating": 8, "count": 5, "average": 7.4, "total": 37}</span></p>
-        <p class="text-sm"><strong>Errors:</strong> 401 (not logged in), 400 (invalid rating), 404 (cottage not found)</p>
-      </div>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">How many cottages can I rate?</summary>
+          <p class="mt-2 text-gray-700">You can rate as many cottages as you want (0-10 each), but you can only vote for one cottage at a time.</p>
+        </details>
 
-      <div class="bg-white shadow rounded p-4 mb-4">
-        <h3 class="font-semibold mb-2">POST /rating/delete/&lt;cottage_id&gt;</h3>
-        <p class="text-sm text-gray-700 mb-2">Delete the current user's rating for a cottage.</p>
-        <p class="text-sm"><strong>Response:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{"ok": true, "count": 4, "average": 7.2, "total": 29}</span></p>
-        <p class="text-sm"><strong>Errors:</strong> 401 (not logged in), 404 (no rating found)</p>
-      </div>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">I can't vote.</summary>
+          <p class="mt-2 text-gray-700">Make sure you're logged in (joined). If you already voted, delete your current vote on the Results page first.</p>
+        </details>
 
-      <div class="bg-white shadow rounded p-4 mb-4">
-        <h3 class="font-semibold mb-2">GET /ratings/&lt;cottage_id&gt;</h3>
-        <p class="text-sm text-gray-700 mb-2">View rating statistics and details for a cottage.</p>
-        <p class="text-sm"><strong>Returns:</strong> HTML page with aggregate stats, user's own rating, and (for admins) all individual ratings.</p>
-      </div>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Where is the vote button?</summary>
+          <p class="mt-2 text-gray-700">The green "Vote" button appears on each cottage card in the List view. You must be logged in to see it.</p>
+        </details>
 
-      <div class="bg-white shadow rounded p-4">
-        <h3 class="font-semibold mb-2">GET /reviews/&lt;cottage_id&gt;</h3>
-        <p class="text-sm text-gray-700 mb-2">View all reviews/comments for a cottage with rating context.</p>
-        <p class="text-sm"><strong>Returns:</strong> HTML page with cottage summary, rating stats, user's rating, and all comments with edit/delete controls.</p>
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Can I see who rated each cottage?</summary>
+          <p class="mt-2 text-gray-700">Regular users can only see their own ratings and overall statistics. Admin users can view all individual ratings on the Ratings detail page.</p>
+        </details>
+
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Tooltips aren't showing.</summary>
+          <p class="mt-2 text-gray-700">Click the floating "Help" button to enable Help Mode, then hover links and buttons.</p>
+        </details>
+
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">The site looks unstyled.</summary>
+          <p class="mt-2 text-gray-700">Do a hard refresh (Ctrl+F5). If it persists, try another browser or contact an admin.</p>
+        </details>
       </div>
     </section>
 
+    <div class="mt-10 flex items-center gap-3">
+      <a href="{{ url_for('cottages') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tooltip="Back to the cottage list">Back to Cottages</a>
+      <a href="{{ url_for('results') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded" data-tooltip="Open the results page">View Results</a>
+      <a href="{{ url_for('tech_support') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded" data-tooltip="Technical documentation">Tech Support</a>
+    </div>
   </div>
 </div>
 {% endblock %}
