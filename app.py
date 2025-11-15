@@ -107,9 +107,125 @@ def join():
     return render_template('join.html')
 
 
+@app.route('/rate/<int:cottage_id>', methods=['POST'])
+def rate_cottage(cottage_id):
+    """Submit or update a rating for a cottage (0-10)"""
+    current_user = session.get('user_name')
+    if not current_user:
+        return jsonify({'ok': False, 'message': 'Please log in to rate.'}), 401
+
+    try:
+        rating = int(request.form.get('rating', 0))
+        if rating < 0 or rating > 10:
+            return jsonify({'ok': False, 'message': 'Rating must be 0-10.'}), 400
+    except ValueError:
+        return jsonify({'ok': False, 'message': 'Invalid rating value.'}), 400
+
+    db = get_db()
+    
+    # Check if cottage exists
+    cottage = db.execute("SELECT id FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    if not cottage:
+        return jsonify({'ok': False, 'message': 'Cottage not found.'}), 404
+
+    # Insert or replace rating (UNIQUE constraint on cottage_id, user_name)
+    db.execute(
+        """INSERT INTO ratings (cottage_id, user_name, rating, rated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(cottage_id, user_name) 
+           DO UPDATE SET rating=excluded.rating, rated_at=excluded.rated_at""",
+        (cottage_id, current_user, rating, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    )
+    db.commit()
+
+    # Fetch updated stats
+    stats = db.execute(
+        "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+        (cottage_id,)
+    ).fetchone()
+
+    return jsonify({
+        'ok': True,
+        'rating': rating,
+        'count': stats['count'],
+        'average': round(stats['avg'], 1) if stats['avg'] else 0,
+        'total': stats['total'] or 0
+    })
 
 
+@app.route('/rating/delete/<int:cottage_id>', methods=['POST'])
+def delete_rating(cottage_id):
+    """Delete user's own rating for a cottage"""
+    current_user = session.get('user_name')
+    if not current_user:
+        return jsonify({'ok': False, 'message': 'Not logged in.'}), 401
 
+    db = get_db()
+    result = db.execute(
+        "DELETE FROM ratings WHERE cottage_id = ? AND user_name = ?",
+        (cottage_id, current_user)
+    )
+    db.commit()
+
+    if result.rowcount == 0:
+        return jsonify({'ok': False, 'message': 'No rating found to delete.'}), 404
+
+    # Fetch updated stats
+    stats = db.execute(
+        "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+        (cottage_id,)
+    ).fetchone()
+
+    return jsonify({
+        'ok': True,
+        'count': stats['count'],
+        'average': round(stats['avg'], 1) if stats['avg'] else 0,
+        'total': stats['total'] or 0
+    })
+
+
+@app.route('/ratings/<int:cottage_id>')
+def cottage_ratings(cottage_id):
+    """Show all ratings for a cottage (admin) or just user's own rating"""
+    current_user = session.get('user_name')
+    if not current_user:
+        flash('Please log in to view ratings.')
+        return redirect(url_for('join'))
+
+    db = get_db()
+    cottage = db.execute("SELECT * FROM cottages WHERE id = ?", (cottage_id,)).fetchone()
+    if not cottage:
+        flash('Cottage not found.')
+        return redirect(url_for('cottages'))
+
+    # Get user's own rating
+    my_rating = db.execute(
+        "SELECT rating, rated_at FROM ratings WHERE cottage_id = ? AND user_name = ?",
+        (cottage_id, current_user)
+    ).fetchone()
+
+    # Get aggregate stats
+    stats = db.execute(
+        "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+        (cottage_id,)
+    ).fetchone()
+
+    # Admins can see all ratings
+    all_ratings = []
+    if is_admin():
+        all_ratings = db.execute(
+            "SELECT user_name, rating, rated_at FROM ratings WHERE cottage_id = ? ORDER BY rated_at DESC",
+            (cottage_id,)
+        ).fetchall()
+
+    return render_template(
+        'ratings.html',
+        cottage=cottage,
+        my_rating=dict(my_rating) if my_rating else None,
+        stats=dict(stats),
+        all_ratings=[dict(r) for r in all_ratings],
+        is_admin=is_admin()
+    )
 
 @app.route('/logout')
 def logout():
@@ -125,8 +241,30 @@ def index():
 @app.route('/cottages')
 def cottages():
     db = get_db()
-    cottages = db.execute("SELECT * FROM cottages ORDER BY votes DESC").fetchall()
-    return render_template('list.html', cottages=cottages)
+    rows = db.execute("SELECT * FROM cottages ORDER BY votes DESC").fetchall()
+    cottages_list = [dict(r) for r in rows]
+    
+    # Add rating stats to each cottage
+    for c in cottages_list:
+        stats = db.execute(
+            "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+            (c['id'],)
+        ).fetchone()
+        c['rating_count'] = stats['count']
+        c['rating_avg'] = round(stats['avg'], 1) if stats['avg'] else 0
+        c['rating_total'] = stats['total'] or 0
+        
+        # Get current user's rating if logged in
+        if session.get('user_name'):
+            my_rating = db.execute(
+                "SELECT rating FROM ratings WHERE cottage_id = ? AND user_name = ?",
+                (c['id'], session['user_name'])
+            ).fetchone()
+            c['my_rating'] = my_rating['rating'] if my_rating else None
+        else:
+            c['my_rating'] = None
+    
+    return render_template('list.html', cottages=cottages_list)
 
 
 @app.route('/cottage/<int:cottage_id>', methods=['GET', 'POST'])
@@ -409,6 +547,16 @@ def results():
     rows = db.execute('SELECT * FROM cottages ORDER BY votes DESC, name ASC').fetchall()
     cottages = [dict(r) for r in rows]
 
+    # Add rating stats to each cottage
+    for c in cottages:
+        stats = db.execute(
+            "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+            (c['id'],)
+        ).fetchone()
+        c['rating_count'] = stats['count']
+        c['rating_avg'] = round(stats['avg'], 1) if stats['avg'] else 0
+        c['rating_total'] = stats['total'] or 0
+
     total_votes = db.execute('SELECT COUNT(*) AS c FROM votes').fetchone()['c']
 
     my_vote = None
@@ -428,14 +576,26 @@ def results():
         cottages=cottages,
         total_votes=total_votes,
         my_vote=my_vote,
-        is_admin=is_admin(),  # unified admin check
+        is_admin=is_admin(),
         votes_by_cottage=votes_by_cottage
     )
 
 @app.route('/compare')
 def compare():
     db = get_db()
-    cottages = db.execute("SELECT * FROM cottages ORDER BY name").fetchall()
+    rows = db.execute("SELECT * FROM cottages ORDER BY name").fetchall()
+    cottages = [dict(r) for r in rows]
+    
+    # Add rating stats to each cottage
+    for c in cottages:
+        stats = db.execute(
+            "SELECT COUNT(*) as count, AVG(rating) as avg, SUM(rating) as total FROM ratings WHERE cottage_id = ?",
+            (c['id'],)
+        ).fetchone()
+        c['rating_count'] = stats['count']
+        c['rating_avg'] = round(stats['avg'], 1) if stats['avg'] else 0
+        c['rating_total'] = stats['total'] or 0
+    
     return render_template('compare.html', cottages=cottages)
 
 @app.route('/results_data')

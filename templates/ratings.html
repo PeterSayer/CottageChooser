@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Ratings: {{ cottage['name'] }}</h1>
+    <a href="{{ url_for('cottage_detail', cottage_id=cottage['id']) }}" 
+       class="text-blue-600 hover:text-blue-700" 
+       data-tooltip="Back to cottage details">&larr; Back</a>
+  </div>
+
+  <div class="bg-white rounded shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Rating Summary</h2>
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div>
+        <div class="text-3xl font-bold text-blue-600">{{ stats['count'] }}</div>
+        <div class="text-sm text-gray-600">Total Ratings</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-green-600">{{ stats['avg'] }}</div>
+        <div class="text-sm text-gray-600">Average (0-10)</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-purple-600">{{ stats['total'] }}</div>
+        <div class="text-sm text-gray-600">Total Score</div>
+      </div>
+    </div>
+  </div>
+
+  {% if my_rating %}
+  <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <span class="font-medium">Your Rating:</span>
+        <span class="text-2xl font-bold text-blue-600 ml-2">{{ my_rating['rating'] }}/10</span>
+        <span class="text-sm text-gray-600 ml-2">({{ my_rating['rated_at'] }})</span>
+      </div>
+      <button class="delete-rating-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm"
+              data-cottage-id="{{ cottage['id'] }}"
+              data-tooltip="Delete your rating">
+        Delete My Rating
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if is_admin and all_ratings %}
+  <div class="bg-white rounded shadow p-6">
+    <h2 class="text-xl font-semibold mb-4">All Ratings (Admin View)</h2>
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead>
+        <tr>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+          <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for r in all_ratings %}
+        <tr>
+          <td class="px-4 py-2">{{ r['user_name'] }}</td>
+          <td class="px-4 py-2">
+            <span class="inline-flex px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">
+              {{ r['rating'] }}/10
+            </span>
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-600">{{ r['rated_at'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.delete-rating-btn');
+  if (!btn) return;
+  
+  const cottageId = btn.dataset.cottageId;
+  btn.disabled = true;
+  btn.classList.add('opacity-50', 'cursor-not-allowed');
+  
+  try {
+    const res = await fetch(`/rating/delete/${cottageId}`, { method: 'POST' });
+    const data = await res.json();
+    
+    if (!res.ok || !data.ok) {
+      alert(data.message || 'Failed to delete rating.');
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      return;
+    }
+    
+    location.reload();
+  } catch (err) {
+    alert('Network error while deleting rating.');
+    btn.disabled = false;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+  }
+});
+</script>
+{% endblock %}

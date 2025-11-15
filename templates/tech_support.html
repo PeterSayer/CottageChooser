@@ -24,84 +24,136 @@
       </ul>
     </section>
 
+    <section id="dependencies">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Dependencies</h2>
+      <pre class="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto"><code>flask>=2.2,<3
+bleach>=6.1
+requests>=2.31
+# openai removed (manual summaries only)</code></pre>
+    </section>
+
     <section id="env-vars">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Configuration (Environment Variables)</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li><span class="font-mono">CC_SECRET</span>: Flask secret key. Defaults to “dev-secret-key”. Set a strong value in production.</li>
-        <li><span class="font-mono">CC_ALLOW_ADMIN_OVERRIDE</span>: Enable admin override for deletes/edits (true/false).</li>
-        <li><span class="font-mono">CC_ADMIN_USERS</span>: Comma-separated admin usernames (used with override).</li>
-        <li><span class="font-mono">CC_ADMINS</span>: Comma-separated admin usernames (used for vote admin controls).</li>
+        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_SECRET</span>: Flask secret key. Defaults to "dev-secret-key". <strong>Set a strong value in production.</strong></li>
+        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ALLOW_ADMIN_OVERRIDE</span>: Enable admin override for deletes/edits (true/false/1/0/yes/no).</li>
+        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMIN_USERS</span>: Comma-separated admin usernames (used with override).</li>
+        <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMINS</span>: Comma-separated admin usernames (used for vote/rating admin controls).</li>
       </ul>
-      <p class="text-sm text-gray-600 mt-2">Note: The app unifies admin checks using CC_ADMIN_USERS and CC_ADMINS. Either can grant admin rights.</p>
+      <p class="text-sm text-gray-600 mt-2">
+        Note: The app unifies admin checks using both CC_ADMIN_USERS and CC_ADMINS. Either can grant admin rights. 
+        Usernames are case-insensitive and whitespace-trimmed.
+      </p>
+      <p class="text-sm text-gray-600 mt-2">
+        Example (PowerShell): <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">$env:CC_ADMINS = "alice,bob"</span>
+      </p>
     </section>
 
     <section id="setup">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Local Setup (Windows, PowerShell)</h2>
-      <pre class="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto"><code>
-cd C:\Users\Peter\Downloads\CottageChooser_Full
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
+      <pre class="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto"><code>cd C:\Users\Peter\Downloads\CottageChooser_Full
+py -3 -m venv venv
+.\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt
-python app.py
-      </code></pre>
-      <p class="text-sm text-gray-600 mt-2">If venv activation is blocked, run: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</p>
+python app.py</code></pre>
+      <p class="text-sm text-gray-600 mt-2">
+        If venv activation is blocked, run once: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</span>
+      </p>
+      <p class="text-sm text-gray-600 mt-2">
+        The app will be available at <a href="http://localhost:5000" class="text-blue-600 hover:underline">http://localhost:5000</a>
+      </p>
     </section>
 
     <section id="database">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Database</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li>SQLite file: <span class="font-mono">data.db</span> (auto-created in the app folder).</li>
-        <li>Initialize using <span class="font-mono">/init</span> (loads schema.sql).</li>
-        <li>Key tables:
-          <ul class="list-disc ml-6 space-y-1">
-            <li><span class="font-mono">cottages</span>: name, location, price, beds, dogs_allowed, image, url, description, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, votes, submitted_by, ai_review_summary.</li>
-            <li><span class="font-mono">votes</span>: id, cottage_id, user_name, voted_at (one active vote per user; denormalized count kept in cottages.votes).</li>
-            <li><span class="font-mono">comments</span>: id, cottage_id, author, text, created_at.</li>
+        <li>SQLite file: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span> (auto-created in the app folder).</li>
+        <li>Initialize using <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/init</span> route (loads schema.sql).</li>
+        <li><strong>Key tables:</strong>
+          <ul class="list-disc ml-6 space-y-1 mt-2">
+            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">cottages</span>: name, location, price, beds, dogs_allowed, image, url, description, hottub, secure_garden, ev_charging, parking, log_burner, high_chair, cot, votes, submitted_by, ai_review_summary.</li>
+            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">votes</span>: id, cottage_id, user_name, voted_at (one active vote per user; denormalized count in cottages.votes).</li>
+            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">comments</span>: id, cottage_id, author, text, created_at.</li>
+            <li><span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ratings</span>: id, cottage_id, user_name, rating (0-10), rated_at. <strong>UNIQUE constraint</strong> on (cottage_id, user_name) – one rating per user per cottage.</li>
           </ul>
         </li>
+        <li><strong>Ratings table:</strong> Stores 0-10 ratings. Users can rate multiple cottages. Updates replace existing ratings.</li>
       </ul>
     </section>
 
     <section id="features">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Application Features</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li>Join/Login via group code (default: “saywards”).</li>
-        <li>List, compare, and view cottage details (with comments and voter list).</li>
-        <li>Vote once per user; delete vote from Results to change it.</li>
-        <li>Admins: manage votes on Results (view/delete any vote), optional override for deleting cottages/comments.</li>
-        <li>Manual “AI Review Summary” field retained; edit on the cottage edit page.</li>
-        <li>Help Mode tooltips with a floating toggle; tooltips appear below elements.</li>
+        <li><strong>Join/Login:</strong> Group code authentication (default: "saywards").</li>
+        <li><strong>Cottage Management:</strong> Add, edit (own), delete (own or admin), list, compare, and view details.</li>
+        <li><strong>Rating System (NEW):</strong>
+          <ul class="list-disc ml-6 mt-1">
+            <li>Users rate cottages 0-10 (multiple cottages allowed)</li>
+            <li>Click rating buttons on cottage cards to submit/update</li>
+            <li>Delete ratings individually via "Clear my rating" or ratings detail page</li>
+            <li>View aggregate stats: count, average, total score</li>
+            <li>Regular users see only their own ratings + aggregates</li>
+            <li>Admins see all individual ratings on the ratings detail page</li>
+          </ul>
+        </li>
+        <li><strong>Voting:</strong> One vote per user (single choice). Delete from Results to change.</li>
+        <li><strong>Comments:</strong> Add, edit (own), delete (own or admin) on cottage details.</li>
+        <li><strong>Results:</strong> Ranked list by votes with rating statistics displayed.</li>
+        <li><strong>Admin Controls:</strong>
+          <ul class="list-disc ml-6 mt-1">
+            <li>Manage votes (view/delete any vote)</li>
+            <li>View all individual ratings per cottage</li>
+            <li>Delete any comment (with override enabled)</li>
+            <li>Delete any cottage (with override enabled)</li>
+          </ul>
+        </li>
+        <li><strong>Presentation Mode:</strong> Slideshow viewer for PNG/JPG in static/slides/.</li>
+        <li><strong>Help Mode:</strong> Floating toggle; tooltips appear below elements.</li>
+        <li><strong>HTML Sanitization:</strong> Descriptions cleaned with Bleach (allowed tags: p, br, strong, em, u, ol, ul, li, h1-h4, blockquote).</li>
       </ul>
     </section>
 
     <section id="security">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Security Notes</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li>Set a strong <span class="font-mono">CC_SECRET</span> in production to protect sessions.</li>
-        <li>Descriptions are sanitized with Bleach. Allowed tags: {{ ALLOWED_TAGS|default([])|join(', ') }}.</li>
-        <li>Change the group code from the default “saywards” if you need privacy.</li>
-        <li>HTTPS recommended for deployments; ensure cookies are secure.</li>
+        <li>Set a strong <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_SECRET</span> in production to protect sessions.</li>
+        <li>Descriptions are sanitized with Bleach to prevent XSS.</li>
+        <li>Change the group code from "saywards" if privacy is required.</li>
+        <li>Use HTTPS in production; ensure secure cookie flags.</li>
+        <li>Rating system enforces one rating per user per cottage via database UNIQUE constraint.</li>
+        <li>Admin checks use normalized (case-insensitive, trimmed) usernames.</li>
       </ul>
     </section>
 
     <section id="deployment">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Deployment (Linux + Apache mod_wsgi)</h2>
       <ol class="list-decimal ml-6 text-gray-700 space-y-2">
-        <li>Create a venv under the project, install requirements.</li>
-        <li>Expose WSGI entry (e.g., cottage.wsgi) and point Apache to it.</li>
-        <li>Set env vars (CC_SECRET, CC_ADMINS, CC_ALLOW_ADMIN_OVERRIDE, CC_ADMIN_USERS).</li>
-        <li>Restart Apache after changes.</li>
+        <li>Create a venv in the project directory and install requirements.</li>
+        <li>Create a WSGI entry file (e.g., cottage.wsgi) pointing to app.py.</li>
+        <li>Configure Apache VirtualHost to use mod_wsgi and point to the WSGI file.</li>
+        <li>Set environment variables (CC_SECRET, CC_ADMINS, CC_ALLOW_ADMIN_OVERRIDE, CC_ADMIN_USERS) in Apache config or .env file.</li>
+        <li>Ensure Apache user (e.g., www-data) can read the project directory and venv.</li>
+        <li>Restart Apache: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">sudo systemctl restart apache2</span></li>
       </ol>
-      <p class="text-sm text-gray-600 mt-2">Ensure the Apache user can read the project and venv.</p>
+      <p class="text-sm text-gray-600 mt-2">
+        Sample WSGI file structure (activate venv Python before importing app).
+      </p>
     </section>
 
     <section id="ops">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Operations</h2>
       <ul class="list-disc ml-6 text-gray-700 space-y-2">
-        <li>Backup: stop the app, copy <span class="font-mono">data.db</span> and <span class="font-mono">static/</span>, <span class="font-mono">templates/</span>.</li>
-        <li>Restore: replace <span class="font-mono">data.db</span>, then restart the app.</li>
-        <li>Slides: add images to <span class="font-mono">static/slides/</span>; optional <span class="font-mono">static/presentation.pptx</span>.</li>
+        <li><strong>Backup:</strong> Stop the app, copy <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span> and <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/</span>, <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">templates/</span>.</li>
+        <li><strong>Restore:</strong> Replace <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">data.db</span>, restart the app.</li>
+        <li><strong>Slides:</strong> Add images to <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/slides/</span>; optional <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">static/presentation.pptx</span>.</li>
+        <li><strong>Database Migration:</strong> If schema changes, either:
+          <ul class="list-disc ml-6 mt-1">
+            <li>Visit /init (drops and recreates all tables – <strong>data loss!</strong>)</li>
+            <li>Manually run ALTER TABLE commands in SQLite shell</li>
+            <li>Use a migration tool like Alembic (not currently integrated)</li>
+          </ul>
+        </li>
       </ul>
     </section>
 
@@ -111,55 +163,115 @@ python app.py
         <details class="bg-white shadow rounded p-4">
           <summary class="font-medium text-gray-900 cursor-pointer">ModuleNotFoundError: No module named 'flask'</summary>
           <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Activate venv: <span class="font-mono">.\.venv\Scripts\Activate.ps1</span></li>
-            <li>Install deps: <span class="font-mono">python -m pip install -r requirements.txt</span></li>
-            <li>Verify interpreter: <span class="font-mono">python -c "import sys; print(sys.executable)"</span></li>
+            <li>Activate venv: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">.\venv\Scripts\Activate.ps1</span></li>
+            <li>Install deps: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">python -m pip install -r requirements.txt</span></li>
+            <li>Verify interpreter: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">python -c "import sys; print(sys.executable)"</span></li>
           </ul>
         </details>
 
         <details class="bg-white shadow rounded p-4">
           <summary class="font-medium text-gray-900 cursor-pointer">No pyvenv.cfg file</summary>
           <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Delete broken venv: <span class="font-mono">Remove-Item -Recurse -Force .venv</span></li>
-            <li>Recreate: <span class="font-mono">py -3 -m venv .venv</span> then activate and install.</li>
+            <li>Delete broken venv: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">Remove-Item -Recurse -Force venv</span></li>
+            <li>Recreate: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">py -3 -m venv venv</span> then activate and install.</li>
           </ul>
         </details>
 
         <details class="bg-white shadow rounded p-4">
-          <summary class="font-medium text-gray-900 cursor-pointer">Admin can’t delete votes</summary>
+          <summary class="font-medium text-gray-900 cursor-pointer">Admin can't delete votes/view ratings</summary>
           <ul class="list-disc ml-6 text-gray-700 mt-2">
-            <li>Set <span class="font-mono">CC_ADMINS</span> or <span class="font-mono">CC_ADMIN_USERS</span> with your username (case-insensitive).</li>
-            <li>Ensure you’re logged in with that exact username.</li>
-            <li>Endpoint: <span class="font-mono">POST /vote/delete/&lt;id&gt;</span> returns JSON <span class="font-mono">{ok: true}</span> on success.</li>
+            <li>Set <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMINS</span> or <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">CC_ADMIN_USERS</span> with your username (case-insensitive).</li>
+            <li>Ensure you're logged in with that exact username.</li>
+            <li>Endpoint: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">POST /vote/delete/&lt;id&gt;</span> returns JSON <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{ok: true}</span> on success.</li>
+            <li>Ratings admin view appears on <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">/ratings/&lt;cottage_id&gt;</span></li>
           </ul>
+        </details>
+
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Rating not saving/updating</summary>
+          <ul class="list-disc ml-6 text-gray-700 mt-2">
+            <li>Ensure you're logged in (ratings require authentication)</li>
+            <li>Check browser console for JavaScript errors</li>
+            <li>Verify <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">ratings</span> table exists (visit /init if needed)</li>
+            <li>Check SQLite constraint: UNIQUE(cottage_id, user_name)</li>
+          </ul>
+        </details>
+
+        <details class="bg-white shadow rounded p-4">
+          <summary class="font-medium text-gray-900 cursor-pointer">Duplicate route error (View function mapping is overwriting...)</summary>
+          <p class="text-gray-700 mt-2">You have duplicate @app.route decorators. Search app.py for duplicate function names and remove duplicates. Each route+function should appear only once.</p>
         </details>
 
         <details class="bg-white shadow rounded p-4">
           <summary class="font-medium text-gray-900 cursor-pointer">Template errors with sqlite3.Row and .get()</summary>
-          <p class="text-gray-700 mt-2">Convert rows to dicts in views (e.g., <span class="font-mono">cottages = [dict(r) for r in rows]</span>) or use bracket access in templates.</p>
+          <p class="text-gray-700 mt-2">Convert rows to dicts in views (e.g., <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">cottages = [dict(r) for r in rows]</span>) or use bracket access in templates.</p>
         </details>
 
         <details class="bg-white shadow rounded p-4">
           <summary class="font-medium text-gray-900 cursor-pointer">Tooltips not visible</summary>
-          <p class="text-gray-700 mt-2">Toggle Help mode using the floating “Help” button; bubbles appear below elements on hover.</p>
+          <p class="text-gray-700 mt-2">Toggle Help mode using the floating "Help" button; bubbles appear below elements on hover.</p>
         </details>
       </div>
     </section>
 
     <section id="endpoints">
       <h2 class="text-2xl font-semibold text-gray-900 mb-3">Key Endpoints</h2>
-      <ul class="list-disc ml-6 text-gray-700 space-y-1">
-        <li><span class="font-mono">/join</span> — Login/Join via group code.</li>
-        <li><span class="font-mono">/cottages</span> — List cottages.</li>
-        <li><span class="font-mono">/cottage/&lt;id&gt;</span> — Details/comments/voters.</li>
-        <li><span class="font-mono">/add</span> — Add cottage.</li>
-        <li><span class="font-mono">/edit/&lt;id&gt;</span> — Edit cottage (includes manual AI summary field).</li>
-        <li><span class="font-mono">/results</span> — Rankings, delete vote (user/admin).</li>
-        <li><span class="font-mono">/compare</span> — Side-by-side compare.</li>
-        <li><span class="font-mono">/presentation</span> — Slides viewer.</li>
-        <li><span class="font-mono">/results_data</span> — JSON snapshot for dashboards.</li>
-        <li><span class="font-mono">/init</span> — One-time DB initialization (loads schema.sql).</li>
-      </ul>
+      <table class="min-w-full bg-white shadow rounded overflow-hidden text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left">Endpoint</th>
+            <th class="px-4 py-2 text-left">Method</th>
+            <th class="px-4 py-2 text-left">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr><td class="px-4 py-2 font-mono">/join</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Login/Join via group code</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/logout</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Clear session and logout</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/cottages</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">List cottages with ratings</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/cottage/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Details/comments/voters</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/add</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Add cottage</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/edit/&lt;id&gt;</td><td class="px-4 py-2">GET, POST</td><td class="px-4 py-2">Edit cottage (owner only)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete cottage (owner/admin)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/vote/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Vote for cottage (one at a time)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/vote/delete/&lt;vote_id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete vote (user/admin)</td></tr>
+          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rate/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Submit/update 0-10 rating</td></tr>
+          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/rating/delete/&lt;id&gt;</td><td class="px-4 py-2">POST</td><td class="px-4 py-2">Delete user's rating</td></tr>
+          <tr><td class="px-4 py-2 font-mono bg-yellow-50">/ratings/&lt;id&gt;</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">View ratings (user/admin)</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/results</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Rankings with vote/rating stats</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/compare</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Side-by-side compare</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/presentation</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Slides viewer</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/results_data</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">JSON snapshot for dashboards</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/guide</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">User guide</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/support</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Technical documentation</td></tr>
+          <tr><td class="px-4 py-2 font-mono">/init</td><td class="px-4 py-2">GET</td><td class="px-4 py-2">Initialize/reset DB (⚠️ data loss)</td></tr>
+        </tbody>
+      </table>
+      <p class="text-sm text-gray-600 mt-2">Highlighted rows indicate new rating system endpoints.</p>
+    </section>
+
+    <section id="api-reference">
+      <h2 class="text-2xl font-semibold text-gray-900 mb-3">Rating API Reference</h2>
+      
+      <div class="bg-white shadow rounded p-4 mb-4">
+        <h3 class="font-semibold mb-2">POST /rate/&lt;cottage_id&gt;</h3>
+        <p class="text-sm text-gray-700 mb-2">Submit or update a rating for a cottage.</p>
+        <p class="text-sm"><strong>Body:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">rating=0-10</span></p>
+        <p class="text-sm"><strong>Response:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{"ok": true, "rating": 8, "count": 5, "average": 7.4, "total": 37}</span></p>
+        <p class="text-sm"><strong>Errors:</strong> 401 (not logged in), 400 (invalid rating), 404 (cottage not found)</p>
+      </div>
+
+      <div class="bg-white shadow rounded p-4 mb-4">
+        <h3 class="font-semibold mb-2">POST /rating/delete/&lt;cottage_id&gt;</h3>
+        <p class="text-sm text-gray-700 mb-2">Delete the current user's rating for a cottage.</p>
+        <p class="text-sm"><strong>Response:</strong> <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{"ok": true, "count": 4, "average": 7.2, "total": 29}</span></p>
+        <p class="text-sm"><strong>Errors:</strong> 401 (not logged in), 404 (no rating found)</p>
+      </div>
+
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="font-semibold mb-2">GET /ratings/&lt;cottage_id&gt;</h3>
+        <p class="text-sm text-gray-700 mb-2">View rating statistics and details for a cottage.</p>
+        <p class="text-sm"><strong>Returns:</strong> HTML page with aggregate stats, user's own rating, and (for admins) all individual ratings.</p>
+      </div>
     </section>
 
   </div>

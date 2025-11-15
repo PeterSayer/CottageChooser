@@ -1,183 +1,256 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Cottage Comparison</h1>
-    
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-lg">
-            <thead class="bg-gray-100">
-                <tr class="text-left">
-                    <th class="sticky left-0 bg-gray-100 px-6 py-3 border-b">Feature</th>
-                    {% for cottage in cottages %}
-                    <th class="px-6 py-3 border-b">{{ cottage.name }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Location -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Location</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">{{ cottage.location }}</td>
-                    {% endfor %}
-                </tr>
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Compare Cottages</h1>
+    <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Back to cottage list">&larr; Back</a>
+  </div>
 
-                <!-- Price -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Price</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">{{ cottage.price }}</td>
-                    {% endfor %}
-                </tr>
+  {% if cottages %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow rounded">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">Feature</th>
+          {% for c in cottages %}
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+            <a href="{{ url_for('cottage_detail', cottage_id=c['id']) }}" class="text-blue-600 hover:text-blue-700" data-tooltip="View details">
+              {{ c['name'] }}
+            </a>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <!-- Image Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Image</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['image'] %}
+            <img src="{{ c['image'] }}" alt="{{ c['name'] }}" class="w-full h-32 object-cover rounded">
+            {% else %}
+            <div class="w-full h-32 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-sm">No image</div>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Bedrooms -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Bedrooms</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">{{ cottage.beds }}</td>
-                    {% endfor %}
-                </tr>
+        <!-- Location Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Location</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">{{ c['location'] or '—' }}</td>
+          {% endfor %}
+        </tr>
 
-                <!-- Dogs Allowed -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Dogs Allowed</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.dogs_allowed %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Price Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Price</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3 text-green-600 font-semibold">{{ c['price'] or '—' }}</td>
+          {% endfor %}
+        </tr>
 
-                <!-- Hot Tub -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Hot Tub</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.hottub %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Beds Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Bedrooms</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">{{ c['beds'] }}</td>
+          {% endfor %}
+        </tr>
 
-                <!-- Secure Garden -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Secure Garden</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.secure_garden %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Votes Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Votes</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            <span class="inline-flex px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">{{ c['votes'] }}</span>
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- EV Charging -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">EV Charging</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.ev_charging %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Rating Average Row -->
+        <tr class="hover:bg-gray-50 bg-yellow-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-yellow-50">Rating (Avg)</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            <span class="inline-flex px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-800 font-medium">
+              {{ c['rating_avg'] }}/10
+            </span>
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Parking -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Parking</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.parking %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Rating Count Row -->
+        <tr class="hover:bg-gray-50 bg-yellow-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-yellow-50">Rating Count</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            <span class="text-sm text-gray-600">{{ c['rating_count'] }} rating{{ 's' if c['rating_count'] != 1 else '' }}</span>
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Log Burner -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Log Burner</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.log_burner %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Rating Total Row -->
+        <tr class="hover:bg-gray-50 bg-yellow-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-yellow-50">Rating (Total)</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            <span class="inline-flex px-2.5 py-0.5 rounded bg-purple-100 text-purple-800 font-medium">
+              {{ c['rating_total'] }} pts
+            </span>
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- High Chair -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">High Chair</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.high_chair %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Dogs Allowed Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Dogs Allowed</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['dogs_allowed'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-red-600">✗ No</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Travel Cot -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Travel Cot</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        {% if cottage.cot %}
-                        <span class="text-green-600">✓</span>
-                        {% else %}
-                        <span class="text-red-600">✗</span>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Hot Tub Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Hot Tub</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['hottub'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Links -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Links</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">
-                        <a href="{{ cottage.url }}" target="_blank" class="text-blue-600 hover:underline">View Listing</a>
-                        <br>
-                        <a href="{{ url_for('cottage_detail', cottage_id=cottage.id) }}" class="text-blue-600 hover:underline">View Details</a>
-                    </td>
-                    {% endfor %}
-                </tr>
+        <!-- Secure Garden Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Secure Garden</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['secure_garden'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-                <!-- Votes -->
-                <tr class="hover:bg-gray-50">
-                    <td class="sticky left-0 bg-white px-6 py-4 border-b font-semibold">Votes</td>
-                    {% for cottage in cottages %}
-                    <td class="px-6 py-4 border-b">{{ cottage.votes }}</td>
-                    {% endfor %}
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <!-- EV Charging Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">EV Charging</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['ev_charging'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-    <div class="mt-8 flex justify-between">
-        <a href="{{ url_for('cottages') }}" class="text-blue-600 hover:underline">&larr; Back to Cottages</a>
+        <!-- Parking Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Parking</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['parking'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
 
-<a href="{{ url_for('results') }}" class="text-blue-600 hover:underline" data-tooltip="View the voting results and standings.">View Results &rarr;</a>
-    </div>
+        <!-- Log Burner Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Log Burner</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['log_burner'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+
+        <!-- High Chair Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">High Chair</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['high_chair'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+
+        <!-- Cot Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Cot</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['cot'] %}
+              <span class="text-green-600">✓ Yes</span>
+            {% else %}
+              <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+
+        <!-- Booking Link Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Booking Link</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3">
+            {% if c['url'] %}
+            <a href="{{ c['url'] }}" target="_blank" class="text-blue-600 hover:text-blue-700" data-tooltip="Open booking page">Visit Site</a>
+            {% else %}
+            <span class="text-gray-400">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+
+        <!-- Submitted By Row -->
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-white">Submitted By</td>
+          {% for c in cottages %}
+          <td class="px-4 py-3 text-sm text-gray-600">{{ c['submitted_by'] }}</td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-6 text-center">
+    <a href="{{ url_for('cottages') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tooltip="Back to cottage list">
+      Back to Cottages
+    </a>
+  </div>
+  {% else %}
+  <div class="bg-white p-6 rounded shadow text-center text-gray-600">
+    No cottages to compare yet. <a href="{{ url_for('add_cottage') }}" class="text-blue-600 hover:text-blue-700" data-tooltip="Add a cottage">Add one</a>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
